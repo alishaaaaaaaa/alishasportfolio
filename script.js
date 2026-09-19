@@ -47,12 +47,12 @@
     videos: {
       'clear-day':    { webm: 'videos/clear-day.webm',    mp4: 'videos/clear-day.mp4' },
       'cloudy-day':   { mp4: 'videos/cloudy-day.mp4' },
-      'rain-day':     { mp4: 'videos/rain-day.mp4' },
-      'snow-day':     { mp4: 'videos/snow-day.mp4' },
+      'rain-day':     { webm: 'videos/rain-day.webm',     mp4: 'videos/rain-day.mp4' },
+      'snow-day':     { webm: 'videos/snow-day.webm',     mp4: 'videos/snow-day.mp4' },
       'storm-day':    { mp4: 'videos/storm-day.mp4' },
-      'clear-night':  { mp4: 'videos/clear-night.mp4' },
+      'clear-night':  { webm: 'videos/clear-night.webm',  mp4: 'videos/clear-night.mp4' },
       'cloudy-night': { mp4: 'videos/cloudy-night.mp4' },
-      'rain-night':   { mp4: 'videos/rain-night.mp4' },
+      'rain-night':   { webm: 'videos/rain-night.webm',   mp4: 'videos/rain-night.mp4' },
       'snow-night':   { mp4: 'videos/snow-night.mp4' },
       'storm-night':  { mp4: 'videos/storm-night.mp4' },
     },
@@ -544,3 +544,4 @@
 
   init();
 })();
+
