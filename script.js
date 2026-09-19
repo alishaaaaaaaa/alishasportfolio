@@ -273,7 +273,7 @@
     const icon = SKY_ICON[`${scene.sky}-${scene.time}`] || '';
     const temp = Math.round(weather.temp);
     state.weatherLineText =
-      `${icon} it's ${temp}°C and ${SKY_WORD[scene.sky]} in ${CONFIG.locationLabel} right now — ` +
+      `${icon} it's ${temp}°C and ${SKY_WORD[scene.sky]} in ${CONFIG.locationLabel} right now, ` +
       `this room updates to match it, live.`;
     revealWeatherLine();
   }
