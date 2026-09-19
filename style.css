@@ -122,6 +122,10 @@ noscript { display: block; padding: 2rem; color: #fff; }
   --h: calc(var(--w) / var(--ratio));
 
   position: absolute;
+  z-index: 0;   /* gives .scene its own stacking context, so its children's
+                   z-index (1–5, keeping the darkness layer above the blinds)
+                   stays scoped inside it instead of competing with .hero,
+                   .dock and .pages, which sit outside .scene entirely */
   width: var(--w);
   height: var(--h);
   left: clamp(calc(100cqw - var(--w)), calc(50cqw - var(--w) * var(--focus-x)), 0px);
