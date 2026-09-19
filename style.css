@@ -39,7 +39,6 @@
   --scroll-distance: 260svh;
 
   --font-ui: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-hand: "Gaegu", "Comic Sans MS", cursive;
 
   --ease: cubic-bezier(0.65, 0, 0.25, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -325,8 +324,9 @@ noscript { display: block; padding: 2rem; color: #fff; }
 .typed {
   margin: 0;
   min-height: 1.1em;
-  font-family: var(--font-hand);
+  font-family: var(--font-ui);
   font-weight: 700;
+  letter-spacing: -0.01em;
   font-size: clamp(2.1rem, calc(6vmin + 1rem), 5rem);
   line-height: 1.1;
   color: #f6eddc;
@@ -513,7 +513,9 @@ noscript { display: block; padding: 2rem; color: #fff; }
 
 .page-title {
   margin: 1.2rem 0 1.4rem;
-  font-family: var(--font-hand);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: -0.01em;
   font-size: clamp(2.8rem, 9vw, 5.2rem);
   line-height: 1;
   color: #fff;
