@@ -204,6 +204,14 @@
       </section>
     </div>
 
+    <!-- Soft dust motes drifting upward, tinted with the room's current
+         weather colour (inherited from --glow, set on this same .viewport
+         element, which is why motes live inside it rather than beside it).
+         They're still fixed to the screen, so they float over the room AND
+         every page, tying the whole site together. Built by script.js so
+         the count/timing is easy to tune in one place. -->
+    <div class="motes" id="motes" aria-hidden="true"></div>
   </div>
+
 </body>
 </html>

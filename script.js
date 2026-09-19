@@ -25,6 +25,7 @@
     weatherCacheMinutes: 20,   // don't ask the weather service more often than this
 
     slatCount: 14,             // how many blind slats
+    moteCount: 18,             // how many floating dust motes drift up the screen
     typingSpeedMs: 85,         // delay between typed letters
     typingStartDelayMs: 1100,  // pause before typing starts
     zoomMs: 1300,              // length of the zoom through the window
@@ -92,6 +93,7 @@
   const hintEl = $('#hint');
   const dockEl = $('#dock');
   const pagesEl = $('#pages');
+  const motesEl = $('#motes');
 
   const state = {
     target: 0,          // where scrolling says we should be (0 to 1)
@@ -125,6 +127,28 @@
       fragment.appendChild(slat);
     }
     blindsEl.appendChild(fragment);
+  }
+
+  // A gentle, ever-so-slightly random field of dust motes that drifts
+  // upward forever. Random per element (size, position, speed, delay) so
+  // it never looks mechanical, but the ranges are tight enough to stay
+  // subtle rather than distracting.
+  function buildMotes() {
+    if (reducedMotion) return;   // respects the CSS rule that hides .motes too
+    const fragment = document.createDocumentFragment();
+    for (let i = 0; i < CONFIG.moteCount; i += 1) {
+      const mote = document.createElement('span');
+      mote.className = 'mote';
+      const size = (Math.random() * 3 + 2).toFixed(1);         // 2–5px
+      mote.style.setProperty('--x', `${(Math.random() * 100).toFixed(1)}%`);
+      mote.style.setProperty('--size', `${size}px`);
+      mote.style.setProperty('--o', (Math.random() * 0.35 + 0.25).toFixed(2));   // 0.25–0.6
+      mote.style.setProperty('--dur', `${(Math.random() * 14 + 18).toFixed(1)}s`); // 18–32s to cross the screen
+      mote.style.setProperty('--delay', `${(Math.random() * -32).toFixed(1)}s`);  // negative = already mid-flight on load
+      mote.style.setProperty('--drift', `${(Math.random() * 80 - 40).toFixed(0)}px`); // gentle sideways sway
+      fragment.appendChild(mote);
+    }
+    motesEl.appendChild(fragment);
   }
 
 
@@ -512,6 +536,7 @@
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
     buildBlinds();
+    buildMotes();
     initScene();
 
     $$('[data-page]').forEach((button) => {

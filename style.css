@@ -73,6 +73,23 @@ body {
 
 noscript { display: block; padding: 2rem; color: #fff; }
 
+/* A faint film-grain layer over the whole screen — cheap, but it's what
+   keeps flat gradients (the darkness, the sky colours) from looking like
+   plain digital colour and gives the whole thing a cozier, filmic texture. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  body::after { opacity: 0.035; }
+}
+
 .scroll-track {
   height: 360vh;                                   /* fallback */
   height: calc(100svh + var(--scroll-distance));
@@ -512,6 +529,8 @@ noscript { display: block; padding: 2rem; color: #fff; }
 .page-inner { max-width: 1080px; margin: 0 auto; }
 
 .page-title {
+  position: relative;
+  display: inline-block;
   margin: 1.2rem 0 1.4rem;
   font-family: var(--font-ui);
   font-weight: 700;
@@ -522,6 +541,21 @@ noscript { display: block; padding: 2rem; color: #fff; }
   text-shadow: 0 2px 30px rgba(0, 0, 0, 0.3);
 }
 .page-title:focus { outline: none; }
+/* a soft underline glow in the room's own weather colour, so the page you
+   land on still feels like the same place you scrolled into */
+.page-title::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 0.08em;
+  height: 0.42em;
+  background: linear-gradient(90deg, var(--glow, rgba(255,255,255,.4)), transparent 85%);
+  filter: blur(14px);
+  opacity: 0.8;
+  z-index: -1;
+  border-radius: 999px;
+}
 
 .panel {
   padding: clamp(20px, 3vw, 34px);
@@ -533,13 +567,49 @@ noscript { display: block; padding: 2rem; color: #fff; }
           backdrop-filter: blur(22px) saturate(150%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 20px 50px rgba(0, 0, 0, 0.25);
 }
-.panel h3 { margin: 0 0 0.8rem; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.02em; }
+.panel h3 {
+  margin: 0 0 0.8rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+/* a little glowing dot picks up the room's current weather colour */
+.panel h3::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--glow, #fff);
+  box-shadow: 0 0 10px 2px var(--glow, transparent);
+  flex-shrink: 0;
+}
 .panel p { margin: 0 0 0.9rem; line-height: 1.65; color: rgba(255, 255, 255, 0.9); }
 .panel p:last-child { margin-bottom: 0; }
 .panel .lead { font-size: clamp(1.15rem, 2.2vw, 1.45rem); line-height: 1.5; color: #fff; }
-.panel a { color: #fff; text-underline-offset: 4px; }
+.panel a {
+  color: #fff;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--glow, rgba(255, 255, 255, 0.5));
+  transition: text-decoration-color 0.25s ease, color 0.25s ease;
+}
+.panel a:hover { text-decoration-color: currentColor; }
 
 .page-inner > .panel { margin-bottom: clamp(14px, 2vw, 24px); }
+
+/* panels rise in already (.rise); give them a gentle hover lift too, so the
+   page feels alive even before you click anything */
+.panel.rise {
+  transition:
+    opacity 0.7s var(--ease-out), transform 0.8s var(--ease-out),
+    box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.panel:not(.card):hover {
+  border-color: rgba(255, 255, 255, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 24px 60px rgba(0, 0, 0, 0.32), 0 0 0 1px var(--glow, transparent);
+}
 
 .grid-3 {
   display: grid;
@@ -556,19 +626,51 @@ noscript { display: block; padding: 2rem; color: #fff; }
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
   font-size: 0.85rem;
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+}
+.chips li:hover {
+  border-color: var(--glow, rgba(255, 255, 255, 0.6));
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
 }
 
-.card { display: flex; flex-direction: column; gap: 0.2rem; }
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  transition: transform 0.35s var(--ease-out);
+}
+.card:hover { transform: translateY(-6px); }
 .card-media {
   aspect-ratio: 16 / 10;
   margin-bottom: 1rem;
   overflow: hidden;
   border-radius: 18px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+  transition: box-shadow 0.35s ease;
 }
-.card-media img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.card:hover .card-media {
+  box-shadow: 0 0 0 1px var(--glow, rgba(255, 255, 255, 0.4)), 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+.card-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--ease-out);
+}
+.card:hover .card-media img { transform: scale(1.06); }
 .card .chips { margin: 0.4rem 0 1rem; }
-.card-link { margin-top: auto; font-weight: 500; }
+.card-link {
+  margin-top: auto;
+  font-weight: 500;
+  color: #fff;
+  text-decoration-color: var(--glow, rgba(255, 255, 255, 0.5));
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.25s ease, letter-spacing 0.25s ease;
+}
+.card:hover .card-link { text-decoration-color: currentColor; letter-spacing: 0.01em; }
 
 .credit { margin-top: 2rem; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); text-align: center; }
 .credit a { color: inherit; }
@@ -587,7 +689,48 @@ noscript { display: block; padding: 2rem; color: #fff; }
 
 
 /* ------------------------------------------------------------------
-   9. MOTION PREFERENCES & SMALL SCREENS
+   9. AMBIENT MOTES
+   Soft floating dust, fixed to the screen (not the scrolling page) so it
+   drifts over the room and every page alike — one continuous, subtle
+   animation that ties the whole site together. Tinted with the same
+   --glow colour the room itself uses, so it always matches the mood.
+   ------------------------------------------------------------------ */
+.motes {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 500;              /* above the room + pages, below nothing needs to be on top of it */
+  mix-blend-mode: screen;
+}
+
+.mote {
+  position: absolute;
+  bottom: -5%;
+  left: var(--x, 50%);
+  width: var(--size, 5px);
+  height: var(--size, 5px);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow, rgba(255,255,255,.9)) 0%, transparent 72%);
+  opacity: 0;
+  animation: mote-drift var(--dur, 22s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes mote-drift {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  8%   { opacity: var(--o, 0.55); }
+  85%  { opacity: var(--o, 0.55); }
+  100% { transform: translate(var(--drift, 40px), -115vh); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motes { display: none; }
+}
+
+
+/* ------------------------------------------------------------------
+   10. MOTION PREFERENCES & SMALL SCREENS
    ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   .scene, .pages-sky, .pages-scrim, .rise { transition-duration: 0.01s !important; transition-delay: 0s !important; }
