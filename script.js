@@ -18,6 +18,11 @@
     // (search "<your city> latitude longitude").
     location: { latitude: 43.2557, longitude: -79.8711 },
 
+    // Shown in the little "this room is live" line under the greeting
+    // (see locationLabel below) — just a plain name for the same place as
+    // `location` above. Doesn't affect the weather lookup itself.
+    locationLabel: 'Hamilton, Ontario',
+
     // At or above this temperature (°C) a clear or cloudy scene uses the "warm" room art.
     // Rain, snow, storms, or anything colder uses the "cool" art.
     warmAtOrAboveC: 15,
@@ -69,6 +74,16 @@
   const SKIES = ['clear', 'cloudy', 'rain', 'snow', 'storm'];
   const CACHE_KEY = 'alisha-weather-v1';
 
+  // For the little "this is live" caption under the greeting.
+  const SKY_WORD = { clear: 'clear', cloudy: 'cloudy', rain: 'rainy', snow: 'snowy', storm: 'stormy' };
+  const SKY_ICON = {
+    'clear-day': '☀️',  'clear-night': '🌙',
+    'cloudy-day': '☁️', 'cloudy-night': '☁️',
+    'rain-day': '🌧️',  'rain-night': '🌧️',
+    'snow-day': '❄️',  'snow-night': '❄️',
+    'storm-day': '⛈️', 'storm-night': '⛈️',
+  };
+
 
   /* ------------------------------------------------------------------
      2. HELPERS + ELEMENTS
@@ -90,6 +105,7 @@
   const skyVideo = $('#sky-video');
   const pageVideo = $('#page-video');
   const typedEl = $('#typed-text');
+  const weatherLineEl = $('#weather-line');
   const hintEl = $('#hint');
   const dockEl = $('#dock');
   const pagesEl = $('#pages');
@@ -104,6 +120,8 @@
     busy: false,        // true while a zoom is running
     pushed: false,      // did we add a browser-history entry for the open page?
     opener: null,       // the button that opened the page (to return focus to)
+    typed: false,       // has the greeting finished typing?
+    weatherLineText: '', // filled in once real weather arrives; shown once `typed` is also true
   };
 
   stage.style.setProperty('--zoom-ms', `${CONFIG.zoomMs}ms`);
@@ -139,10 +157,10 @@
     for (let i = 0; i < CONFIG.moteCount; i += 1) {
       const mote = document.createElement('span');
       mote.className = 'mote';
-      const size = (Math.random() * 3 + 2).toFixed(1);         // 2–5px
+      const size = (Math.random() * 5 + 5).toFixed(1);         // 5–10px
       mote.style.setProperty('--x', `${(Math.random() * 100).toFixed(1)}%`);
       mote.style.setProperty('--size', `${size}px`);
-      mote.style.setProperty('--o', (Math.random() * 0.35 + 0.25).toFixed(2));   // 0.25–0.6
+      mote.style.setProperty('--o', (Math.random() * 0.35 + 0.55).toFixed(2));   // 0.55–0.9
       mote.style.setProperty('--dur', `${(Math.random() * 14 + 18).toFixed(1)}s`); // 18–32s to cross the screen
       mote.style.setProperty('--delay', `${(Math.random() * -32).toFixed(1)}s`);  // negative = already mid-flight on load
       mote.style.setProperty('--drift', `${(Math.random() * 80 - 40).toFixed(0)}px`); // gentle sideways sway
@@ -248,6 +266,26 @@
     if (state.videosStarted) video.play().catch(() => {});
   }
 
+  // Fills in and reveals the "this room is live" caption — only called with
+  // real weather data (cached or freshly fetched), never the guessed
+  // placeholder scene, so it's never showing something untrue.
+  function setWeatherLine(weather, scene) {
+    const icon = SKY_ICON[`${scene.sky}-${scene.time}`] || '';
+    const temp = Math.round(weather.temp);
+    state.weatherLineText =
+      `${icon} it's ${temp}°C and ${SKY_WORD[scene.sky]} in ${CONFIG.locationLabel} right now — ` +
+      `this room updates to match it, live.`;
+    revealWeatherLine();
+  }
+
+  // Only shows once the greeting has finished typing AND we have real
+  // weather text, whichever of those finishes second.
+  function revealWeatherLine() {
+    if (!state.weatherLineText || !state.typed) return;
+    weatherLineEl.textContent = state.weatherLineText;
+    weatherLineEl.classList.add('is-shown');
+  }
+
   let currentScene = {};
   function applyScene(next) {
     const scene = { ...currentScene, ...next };
@@ -268,7 +306,9 @@
   async function initScene() {
     const overrides = urlOverrides();
     const cached = readCache();
-    applyScene({ ...(cached ? sceneFromWeather(cached) : guessScene()), ...overrides });
+    const startScene = cached ? sceneFromWeather(cached) : guessScene();
+    applyScene({ ...startScene, ...overrides });
+    if (cached) setWeatherLine(cached, startScene);
 
     const everythingForced = ['time', 'sky', 'tone'].every((key) => key in overrides);
     if (cached || everythingForced) return;
@@ -276,7 +316,9 @@
     try {
       const weather = await fetchWeather();
       writeCache(weather);
-      applyScene({ ...sceneFromWeather(weather), ...overrides });
+      const scene = sceneFromWeather(weather);
+      applyScene({ ...scene, ...overrides });
+      setWeatherLine(weather, scene);
     } catch (error) {
       console.warn('[portfolio] Could not get the weather, using a default scene.', error);
     }
@@ -309,6 +351,8 @@
      ------------------------------------------------------------------ */
   function finishTyping() {
     stage.classList.add('is-typed');
+    state.typed = true;
+    revealWeatherLine();
   }
 
   async function typeGreeting() {
