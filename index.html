@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Portfolio</title>
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; }
+
+    /* The tall area that gives you room to scroll */
+    .scene { height: 300vh; }
+
+    /* The screen-sized window that stays pinned while you scroll */
+    .stage {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      overflow: hidden;
+      background: #1a1a2e;
+      color: white;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+    .stage h1 { font-size: 4rem; }
+
+    /* The blinds sit on top of the content */
+    .blinds {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .slat {
+      flex: 1;
+      background: linear-gradient(#ebe5d8, #cdc5b3);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+      transform-origin: top;
+      animation: raise linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 200vh;
+    }
+    @keyframes raise {
+      to {
+        transform: translateY(calc(var(--i) * -1 * (100svh / 12 - 6px))) scaleY(0.07);
+      }
+    }
+
+    /* Normal content after the effect */
+    .about { padding: 6rem 2rem; max-width: 40rem; margin: auto; }
+  </style>
+</head>
+<body>
+
+  <div class="scene">
+    <div class="stage">
+      <div>
+        <h1>Your Name</h1>
+        <p>Designer &amp; Developer</p>
+      </div>
+
+      <div class="blinds">
+        <div class="slat" style="--i:0"></div>
+        <div class="slat" style="--i:1"></div>
+        <div class="slat" style="--i:2"></div>
+        <div class="slat" style="--i:3"></div>
+        <div class="slat" style="--i:4"></div>
+        <div class="slat" style="--i:5"></div>
+        <div class="slat" style="--i:6"></div>
+        <div class="slat" style="--i:7"></div>
+        <div class="slat" style="--i:8"></div>
+        <div class="slat" style="--i:9"></div>
+        <div class="slat" style="--i:10"></div>
+        <div class="slat" style="--i:11"></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="about">
+    <h2>About me</h2>
+    <p>This is where your projects and bio will go.</p>
+  </section>
+
+</body>
+</html>
