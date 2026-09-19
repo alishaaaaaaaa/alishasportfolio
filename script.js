@@ -29,6 +29,13 @@
     typingStartDelayMs: 1100,  // pause before typing starts
     zoomMs: 1300,              // length of the zoom through the window
 
+    // Where in the window the zoom-in centers, left to right (0 = left edge,
+    // 0.5 = dead centre on the mullion between the panes, 1 = right edge).
+    // Lower than 0.5 shifts the page background left of the window frame,
+    // higher shifts it right — tweak this rather than 0.5 so the page you
+    // land on isn't centred on the frame between the two panes.
+    zoomFocusX: 0.34,
+
     // Room art: one file per look. Put them in the images/ folder.
     rooms: {
       'warm-day':   'images/room-warm-day.png',
@@ -368,8 +375,8 @@
     const { win, scene } = measureWindow();
     const vw = stage.clientWidth;
     const vh = stage.clientHeight;
-    const scale = Math.max(vw / win.width, vh / win.height) * 1.04;   // fill the screen with the window
-    const cx = win.left + win.width / 2;
+    const scale = Math.max(vw / win.width, vh / win.height) * 1.15;   // fill the screen with the window
+    const cx = win.left + win.width * CONFIG.zoomFocusX;
     const cy = win.top + win.height / 2;
 
     if (instant) sceneEl.style.transition = 'none';
