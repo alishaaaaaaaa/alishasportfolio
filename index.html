@@ -2,85 +2,208 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Portfolio</title>
-  <style>
-    * { margin: 0; box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; }
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>alisha · portfolio</title>
+  <meta name="description" content="Alisha's portfolio: a cozy study room that changes with the weather.">
+  <meta name="theme-color" content="#04050b">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌙%3C/text%3E%3C/svg%3E">
 
-    /* The tall area that gives you room to scroll */
-    .scene { height: 300vh; }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
 
-    /* The screen-sized window that stays pinned while you scroll */
-    .stage {
-      position: sticky;
-      top: 0;
-      height: 100svh;
-      overflow: hidden;
-      background: #1a1a2e;
-      color: white;
-      display: grid;
-      place-items: center;
-      text-align: center;
-    }
-    .stage h1 { font-size: 4rem; }
-
-    /* The blinds sit on top of the content */
-    .blinds {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    .slat {
-      flex: 1;
-      background: linear-gradient(#ebe5d8, #cdc5b3);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
-      transform-origin: top;
-      animation: raise linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 200vh;
-    }
-    @keyframes raise {
-      to {
-        transform: translateY(calc(var(--i) * -1 * (100svh / 12 - 6px))) scaleY(0.07);
-      }
-    }
-
-    /* Normal content after the effect */
-    .about { padding: 6rem 2rem; max-width: 40rem; margin: auto; }
-  </style>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
 </head>
 <body>
 
-  <div class="scene">
-    <div class="stage">
-      <div>
-        <h1>Your Name</h1>
-        <p>Designer &amp; Developer</p>
+  <noscript>This site is an interactive scene and needs JavaScript turned on to work.</noscript>
+
+  <!-- Invisible tall box. It only exists to give the page something to scroll through. -->
+  <div class="scroll-track" aria-hidden="true"></div>
+
+  <!-- Everything you see lives inside this fixed "stage".
+       The script sets data-time / data-sky / data-tone on it from the weather. -->
+  <div class="viewport" id="viewport" data-time="night" data-sky="clear" data-tone="cool">
+
+    <!-- ============ THE ROOM (layers, back to front) ============ -->
+    <div class="scene" id="scene">
+
+      <!-- 1 + 2. The window: weather video at the back, blinds in front of it -->
+      <div class="window" id="window">
+        <div class="sky">
+          <video id="sky-video" muted loop playsinline preload="auto" aria-hidden="true" tabindex="-1">
+            <!-- script.js fills in <source> tags here: webm first, mp4 as the fallback -->
+          </video>
+        </div>
+        <div class="blinds" id="blinds" aria-hidden="true">
+          <div class="blinds-head"></div>
+          <!-- the slats are created by script.js -->
+        </div>
       </div>
 
-      <div class="blinds">
-        <div class="slat" style="--i:0"></div>
-        <div class="slat" style="--i:1"></div>
-        <div class="slat" style="--i:2"></div>
-        <div class="slat" style="--i:3"></div>
-        <div class="slat" style="--i:4"></div>
-        <div class="slat" style="--i:5"></div>
-        <div class="slat" style="--i:6"></div>
-        <div class="slat" style="--i:7"></div>
-        <div class="slat" style="--i:8"></div>
-        <div class="slat" style="--i:9"></div>
-        <div class="slat" style="--i:10"></div>
-        <div class="slat" style="--i:11"></div>
-      </div>
+      <!-- 3. Your room art. The window area must be truly transparent
+              so the video and blinds behind it show through. -->
+      <img class="room" id="room" src="images/room-cool-night.png"
+           alt="Illustration of Alisha studying at her laptop with her cat beside her, in front of a window."
+           decoding="async" fetchpriority="high" draggable="false">
+
+      <!-- 4. Light spilling in from the window as the blinds open -->
+      <div class="lightfx" aria-hidden="true"></div>
+
+      <!-- 5. The darkness. Fades away as you scroll. Has a hole for the laptop. -->
+      <div class="darkness" aria-hidden="true"></div>
+
+      <!-- 6. Soft glow from the laptop screen -->
+      <div class="laptop-glow" aria-hidden="true"></div>
     </div>
+
+    <!-- ============ INTRO TEXT ============ -->
+    <header class="hero" id="hero">
+      <h1 class="sr-only">hi, my name is alisha!</h1>
+      <p class="typed" aria-hidden="true"><span id="typed-text"></span><span class="caret"></span></p>
+    </header>
+
+    <button class="hint" id="hint" type="button">
+      <span class="hint-inner">scroll to open the blinds</span>
+    </button>
+
+    <!-- ============ THE THREE GLASS BUTTONS ============ -->
+    <nav class="dock" id="dock" aria-label="Sections">
+      <button class="glass-btn" type="button" data-page="about"     style="--k:0">about me</button>
+      <button class="glass-btn" type="button" data-page="projects"  style="--k:1">projects</button>
+      <button class="glass-btn" type="button" data-page="community" style="--k:2">community</button>
+    </nav>
+
+    <!-- ============ THE PAGES (you zoom "through the window" into these) ============ -->
+    <div class="pages" id="pages" aria-hidden="true">
+      <div class="pages-sky"><video id="page-video" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video></div>
+      <!-- page-video's <source> tags are copied over from sky-video by script.js when a page opens -->
+      <div class="pages-scrim"></div>
+
+      <!-- ---------------- ABOUT ---------------- -->
+      <section class="page" id="page-about" role="dialog" aria-modal="true" aria-labelledby="about-title">
+        <div class="page-scroll">
+          <div class="page-inner">
+            <button class="glass-btn glass-btn--small" type="button" data-back>← back to the room</button>
+            <h2 class="page-title rise" id="about-title" tabindex="-1">about me</h2>
+
+            <!-- ✏️ EDIT: replace everything in [brackets] with your own words -->
+            <div class="panel rise">
+              <p class="lead">[Write a short, warm intro here: who you are, what you do, and what you're working toward.]</p>
+              <p>[A second paragraph is a good place for your story, your values, or what you love making.]</p>
+            </div>
+
+            <div class="grid-3">
+              <div class="panel rise">
+                <h3>currently</h3>
+                <ul class="plain">
+                  <li>[what you're studying or working on]</li>
+                  <li>[what you're learning]</li>
+                  <li>[what you're looking for]</li>
+                </ul>
+              </div>
+
+              <div class="panel rise">
+                <h3>skills</h3>
+                <ul class="chips">
+                  <li>skill one</li>
+                  <li>skill two</li>
+                  <li>skill three</li>
+                  <li>skill four</li>
+                </ul>
+              </div>
+
+              <div class="panel rise">
+                <h3>say hi</h3>
+                <ul class="plain">
+                  <li><a href="mailto:you@example.com">you@example.com</a></li>
+                  <li><a href="https://www.linkedin.com/" target="_blank" rel="noopener">linkedin</a></li>
+                  <li><a href="https://github.com/" target="_blank" rel="noopener">github</a></li>
+                </ul>
+              </div>
+            </div>
+
+            <p class="credit rise">weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- PROJECTS ---------------- -->
+      <section class="page" id="page-projects" role="dialog" aria-modal="true" aria-labelledby="projects-title">
+        <div class="page-scroll">
+          <div class="page-inner">
+            <button class="glass-btn glass-btn--small" type="button" data-back>← back to the room</button>
+            <h2 class="page-title rise" id="projects-title" tabindex="-1">projects</h2>
+
+            <div class="grid-3">
+              <!-- ✏️ EDIT: copy one <article> for each project you want to show.
+                   To use a real image, replace the card-media div with:
+                   <div class="card-media"><img src="images/project-one.jpg" alt="describe the image"></div> -->
+              <article class="panel card rise">
+                <div class="card-media" role="img" aria-label="Project one preview"></div>
+                <h3>project one</h3>
+                <p>[One or two sentences: what it is, what you did, what you learned.]</p>
+                <ul class="chips"><li>tag</li><li>tag</li></ul>
+                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">view project →</a>
+              </article>
+
+              <article class="panel card rise">
+                <div class="card-media" role="img" aria-label="Project two preview"></div>
+                <h3>project two</h3>
+                <p>[One or two sentences: what it is, what you did, what you learned.]</p>
+                <ul class="chips"><li>tag</li><li>tag</li></ul>
+                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">view project →</a>
+              </article>
+
+              <article class="panel card rise">
+                <div class="card-media" role="img" aria-label="Project three preview"></div>
+                <h3>project three</h3>
+                <p>[One or two sentences: what it is, what you did, what you learned.]</p>
+                <ul class="chips"><li>tag</li><li>tag</li></ul>
+                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">view project →</a>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- COMMUNITY ---------------- -->
+      <section class="page" id="page-community" role="dialog" aria-modal="true" aria-labelledby="community-title">
+        <div class="page-scroll">
+          <div class="page-inner">
+            <button class="glass-btn glass-btn--small" type="button" data-back>← back to the room</button>
+            <h2 class="page-title rise" id="community-title" tabindex="-1">community</h2>
+
+            <div class="panel rise">
+              <p class="lead">[A sentence or two about why community matters to you and how you show up for it.]</p>
+            </div>
+
+            <div class="grid-3">
+              <!-- ✏️ EDIT: groups, clubs, volunteering, talks, events, newsletters, anything -->
+              <article class="panel card rise">
+                <h3>community one</h3>
+                <p>[Your role and what you do there.]</p>
+                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">visit →</a>
+              </article>
+
+              <article class="panel card rise">
+                <h3>community two</h3>
+                <p>[Your role and what you do there.]</p>
+                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">visit →</a>
+              </article>
+
+              <article class="panel card rise">
+                <h3>community three</h3>
+                <p>[Your role and what you do there.]</p>
+                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">visit →</a>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
   </div>
-
-  <section class="about">
-    <h2>About me</h2>
-    <p>This is where your projects and bio will go.</p>
-  </section>
-
 </body>
 </html>

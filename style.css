@@ -1,0 +1,594 @@
+/* ===================================================================
+   alisha's portfolio · style.css
+
+   1 Settings   2 Base   3 Scene   4 Blinds   5 Light & dark
+   6 Intro text 7 Buttons 8 Pages  9 Motion & small screens
+   =================================================================== */
+
+
+/* ------------------------------------------------------------------
+   1. SETTINGS: the values you're most likely to tweak
+   ------------------------------------------------------------------ */
+:root {
+  /* Your room art: image width ÷ image height. Measured from room-warm-day.png (759×445). */
+  --ratio: 1.706;
+
+  /* Which part of the art stays on screen when it has to be cropped.
+     x: 0 = left edge, 1 = right edge   ·   y: 0 = top, 1 = bottom */
+  --focus-x: 0.5;
+  --focus-y: 0.6;
+
+  /* The see-through window in your art, as a % of the whole image.
+     Add  ?align  to the web address to see a red box showing this area.
+     Measured directly from each PNG's own alpha channel (these come from
+     your PSDs, which already cut the window's real shape — including the
+     little notch where your hood overlaps it — so nothing here is a
+     plain rectangle guess). The window's top edge is the very top of the
+     art (0%), which is why the blinds header bar sits flush with the top
+     of the scene. */
+  --win-x: 34.3%;
+  --win-y: 0%;
+  --win-w: 40.8%;
+  --win-h: 45.4%;
+
+  /* The centre of the laptop (the one thing visible in the dark) */
+  --laptop-x: 53.6%;
+  --laptop-y: 63.8%;
+
+  /* How far you scroll to open the blinds all the way */
+  --scroll-distance: 260svh;
+
+  --font-ui: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-hand: "Gaegu", "Comic Sans MS", cursive;
+
+  --ease: cubic-bezier(0.65, 0, 0.25, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-aspect-ratio: 1/1) {
+  /* portrait screens: look slightly right of centre (window + laptop + cat) */
+  :root { --focus-x: 0.55; --focus-y: 0.42; }
+}
+
+
+/* ------------------------------------------------------------------
+   2. BASE
+   ------------------------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: #04050b;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+}
+html.is-locked { overflow: hidden; }
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  color: #fff;
+  background: #04050b;
+  -webkit-font-smoothing: antialiased;
+}
+
+noscript { display: block; padding: 2rem; color: #fff; }
+
+.scroll-track {
+  height: 360vh;                                   /* fallback */
+  height: calc(100svh + var(--scroll-distance));
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* ------------------------------------------------------------------
+   3. SCENE
+   The stage is a fixed, screen-sized window. Inside it the room is
+   one 3:2 block that is scaled to COVER the screen, so the window,
+   video and blinds always stay lined up with the art.
+   ------------------------------------------------------------------ */
+.viewport {
+  /* theme colours: overwritten below for each weather/time */
+  --bg: #04050b;
+  --glow: rgba(120, 150, 255, 0.35);
+  --screen-glow: rgba(190, 215, 255, 0.32);
+  --slat-hi: #51648f;
+  --slat-lo: #2f3d63;
+  --sky-top: #070d24;
+  --sky-bottom: #1c2c63;
+
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  container-type: size;          /* lets us use cqw / cqh units below */
+  isolation: isolate;
+  background: var(--bg);
+}
+
+.scene {
+  --w: max(100cqw, calc(100cqh * var(--ratio)));
+  --h: calc(var(--w) / var(--ratio));
+
+  position: absolute;
+  width: var(--w);
+  height: var(--h);
+  left: clamp(calc(100cqw - var(--w)), calc(50cqw - var(--w) * var(--focus-x)), 0px);
+  top: calc((100cqh - var(--h)) * var(--focus-y));
+  overflow: hidden;      /* keeps the blinds' -3% overhang from poking past the art's own edges */
+  transition: transform var(--zoom-ms, 1300ms) var(--ease);
+}
+
+@media (max-aspect-ratio: 1/1) {
+  /* portrait: zoom in on the middle of the room instead of cropping to a sliver */
+  .scene { --w: min(200cqw, max(100cqw, calc(100cqh * var(--ratio)))); }
+}
+
+.room {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+.missing-art .room { visibility: hidden; }
+
+/* The window sits exactly where the transparent hole is in your art.
+   z-index is explicit on every scene layer below so the darkness layer
+   always paints over the blinds, even though its box-shadow can otherwise
+   nudge a browser into compositing it on its own layer out of order. */
+.window {
+  position: absolute;
+  z-index: 1;
+  left: var(--win-x);
+  top: var(--win-y);
+  width: var(--win-w);
+  height: var(--win-h);
+}
+
+/* Sky and blinds are 3% bigger than the hole so their edges tuck under the frame */
+.sky, .blinds {
+  position: absolute;
+  inset: -3%;
+}
+
+.sky {
+  overflow: hidden;
+  background: linear-gradient(var(--sky-top), var(--sky-bottom));
+}
+.sky video, .pages-sky video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sky video[hidden], .pages-sky video[hidden] { display: none; }
+
+
+/* ------------------------------------------------------------------
+   4. BLINDS
+   Each slat is squashed and lifted according to --b (0 = closed,
+   1 = fully raised). --i is the slat's number (0 = top slat), so lower
+   slats travel further and end up bunched at the top.
+   ------------------------------------------------------------------ */
+.blinds {
+  --lift: 86;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.slat {
+  flex: 1 1 0;
+  transform-origin: 50% 0;
+  background: linear-gradient(
+    to bottom,
+    var(--slat-hi) 0%,
+    var(--slat-lo) 86%,
+    rgba(0, 0, 0, 0.32) 86%,
+    rgba(0, 0, 0, 0.32) 93%,
+    transparent 93%
+  );
+  transform:
+    translateY(calc(var(--i) * var(--b, 0) * var(--lift) * -1%))
+    scaleY(calc(1 - var(--lift) / 100 * var(--b, 0)));
+}
+
+.blinds-head {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3.2%;
+  z-index: 2;
+  background: linear-gradient(var(--slat-hi), var(--slat-lo));
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+
+/* ------------------------------------------------------------------
+   5. LIGHT & DARK
+   --light goes 0 → 1 as you scroll. The darkness fades out and the
+   window glow fades in.
+   ------------------------------------------------------------------ */
+.lightfx {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 34% 42%
+    at calc(var(--win-x) + var(--win-w) / 2) calc(var(--win-y) + var(--win-h) / 2),
+    var(--glow),
+    transparent 72%
+  );
+  mix-blend-mode: screen;
+  opacity: calc(var(--light, 0) * 0.8);
+}
+
+.darkness {
+  position: absolute;
+  z-index: 4;
+  inset: -2px;   /* slightly overscan the scene so no hairline gap shows at its edge */
+  background: #000;
+  pointer-events: none;
+  opacity: calc(1 - var(--light, 0));
+  /* a soft hole around the laptop so it's the only thing you can see */
+  -webkit-mask-image: radial-gradient(ellipse 12% 16% at var(--laptop-x) var(--laptop-y), transparent 0%, transparent 60%, #000 100%);
+          mask-image: radial-gradient(ellipse 12% 16% at var(--laptop-x) var(--laptop-y), transparent 0%, transparent 60%, #000 100%);
+}
+
+.laptop-glow {
+  position: absolute;
+  z-index: 5;
+  left: var(--laptop-x);
+  top: calc(var(--laptop-y) - 3%);
+  width: 24%;
+  aspect-ratio: 1.3;
+  translate: -50% -50%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, var(--screen-glow), transparent);
+  mix-blend-mode: screen;
+  opacity: calc(0.95 - var(--light, 0) * 0.75);
+  animation: breathe 5s ease-in-out infinite alternate;
+}
+@keyframes breathe { from { scale: 1; } to { scale: 1.09; } }
+
+/* ---- colour themes: chosen by weather (see script.js) ---- */
+.viewport[data-tone="warm"][data-time="day"]   { --glow: rgba(255,190,110,.55); --screen-glow: rgba(255,244,225,.30); --slat-hi:#f6e6c8; --slat-lo:#d9bc8e; }
+.viewport[data-tone="cool"][data-time="day"]   { --glow: rgba(185,212,255,.50); --screen-glow: rgba(235,245,255,.30); --slat-hi:#e3ecf6; --slat-lo:#b5c6da; }
+.viewport[data-tone="cool"][data-time="night"] { --glow: rgba(110,140,255,.38); --screen-glow: rgba(190,215,255,.34); --slat-hi:#51648f; --slat-lo:#2f3d63; }
+.viewport[data-tone="warm"][data-time="night"] { --glow: rgba(255,170,90,.38);  --screen-glow: rgba(255,225,180,.32); --slat-hi:#86603d; --slat-lo:#54391f; }
+
+/* ---- plain-colour skies: shown when a weather video is missing ---- */
+.viewport[data-time="day"][data-sky="clear"]    { --sky-top:#5da9f0; --sky-bottom:#cfe8ff; }
+.viewport[data-time="day"][data-sky="cloudy"]   { --sky-top:#8d9db1; --sky-bottom:#cdd6df; }
+.viewport[data-time="day"][data-sky="rain"]     { --sky-top:#5d6d80; --sky-bottom:#93a1b0; }
+.viewport[data-time="day"][data-sky="snow"]     { --sky-top:#b8c6d6; --sky-bottom:#eef3f8; }
+.viewport[data-time="day"][data-sky="storm"]    { --sky-top:#3f4a5a; --sky-bottom:#6c7889; }
+.viewport[data-time="night"][data-sky="clear"]  { --sky-top:#070d24; --sky-bottom:#1c2c63; }
+.viewport[data-time="night"][data-sky="cloudy"] { --sky-top:#111827; --sky-bottom:#2b3648; }
+.viewport[data-time="night"][data-sky="rain"]   { --sky-top:#0c1320; --sky-bottom:#1f2c3f; }
+.viewport[data-time="night"][data-sky="snow"]   { --sky-top:#1a2233; --sky-bottom:#3a4760; }
+.viewport[data-time="night"][data-sky="storm"]  { --sky-top:#080b14; --sky-bottom:#1a2030; }
+
+
+/* ---- ?align helper: shows where the window and laptop are ---- */
+.align-mode .darkness,
+.align-mode .laptop-glow { display: none; }
+.align-mode .blinds { opacity: 0.35; }
+.align-mode .window { outline: 2px dashed #ff3b6b; outline-offset: -1px; }
+.align-mode .scene::after {
+  content: "";
+  position: absolute;
+  left: var(--laptop-x);
+  top: var(--laptop-y);
+  width: 14px; height: 14px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: #20e3ff;
+  z-index: 9;
+}
+
+
+/* ------------------------------------------------------------------
+   6. INTRO TEXT + SCROLL HINT
+   ------------------------------------------------------------------ */
+.hero {
+  position: absolute;
+  left: 0; right: 0;
+  top: clamp(72px, 14cqh, 180px);
+  z-index: 3;
+  padding-inline: 20px;
+  text-align: center;
+  pointer-events: none;
+  opacity: var(--hero, 1);
+  translate: 0 calc((1 - var(--hero, 1)) * -18px);
+}
+
+.typed {
+  margin: 0;
+  min-height: 1.1em;
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: clamp(2.1rem, calc(6vmin + 1rem), 5rem);
+  line-height: 1.1;
+  color: #f6eddc;
+  text-shadow: 0 0 28px rgba(255, 236, 200, 0.35);
+}
+
+.caret {
+  display: inline-block;
+  width: 0.07em;
+  height: 0.85em;
+  margin-left: 0.09em;
+  vertical-align: -0.08em;
+  background: currentColor;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(22px, 5cqh, 46px));
+  translate: -50% 0;
+  z-index: 3;
+  padding: 0.6rem 1rem;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.72);
+  font: 500 0.82rem/1 var(--font-ui);
+  letter-spacing: 0.22em;
+  opacity: var(--hero, 1);
+  visibility: hidden;
+}
+.hint-inner {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.hint-inner::after {
+  content: "↓";
+  font-size: 1.1rem;
+  animation: nudge 1.6s ease-in-out infinite;
+}
+@keyframes nudge { 50% { translate: 0 6px; } }
+.is-typed .hint { visibility: visible; }
+.is-typed .hint-inner { opacity: 1; }
+.hint-off { visibility: hidden !important; }
+.hint:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 8px; }
+
+
+/* ------------------------------------------------------------------
+   7. THE GLASS BUTTONS
+   ------------------------------------------------------------------ */
+.glass-btn {
+  position: relative;
+  appearance: none;
+  cursor: pointer;
+  padding: 1rem 1.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  color: #fff;
+  font: 500 1rem/1 var(--font-ui);
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.26) 0%,
+    rgba(255, 255, 255, 0.08) 55%,
+    rgba(255, 255, 255, 0.16) 100%
+  );
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+          backdrop-filter: blur(16px) saturate(170%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 32px rgba(0, 0, 0, 0.28);
+  transition:
+    opacity 0.45s ease,
+    transform 0.25s var(--ease-out),
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* the bright "sheen" across the top half of the glass */
+.glass-btn::before {
+  content: "";
+  position: absolute;
+  inset: 1px 1px 52% 1px;
+  border-radius: 999px 999px 45% 45%;
+  background: linear-gradient(rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.glass-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.36) 0%,
+    rgba(255, 255, 255, 0.12) 55%,
+    rgba(255, 255, 255, 0.22) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.16),
+    0 16px 38px rgba(0, 0, 0, 0.32);
+}
+.glass-btn:active { transform: translateY(0) scale(0.98); }
+.glass-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+.glass-btn--small { padding: 0.75rem 1.25rem; font-size: 0.9rem; }
+
+/* the row of three buttons */
+.dock {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(22px, 6cqh, 56px));
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(8px, 1.6vw, 16px);
+  padding-inline: 16px;
+  visibility: hidden;
+  pointer-events: none;
+}
+.ui-visible .dock { visibility: visible; }
+
+/* each button fades up a moment after the one before it (--k is 0, 1, 2) */
+.dock .glass-btn {
+  --t: clamp(0, calc((var(--ui, 0) - var(--k, 0) * 0.12) / 0.76), 1);
+  opacity: var(--t);
+  translate: 0 calc((1 - var(--t)) * 18px);
+}
+.ui-ready .dock .glass-btn { pointer-events: auto; }
+.is-leaving .dock .glass-btn { opacity: 0; translate: 0 10px; pointer-events: none; }
+
+
+/* ------------------------------------------------------------------
+   8. PAGES (About / Projects / Community)
+   ------------------------------------------------------------------ */
+.pages {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  visibility: hidden;
+  transition: visibility 0s linear 0.7s;   /* stay visible while fading out */
+}
+.pages.is-open { visibility: visible; transition-delay: 0s; }
+
+.pages-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(var(--sky-top), var(--sky-bottom));
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.pages-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(6, 8, 20, 0.35), rgba(6, 8, 20, 0.62));
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.pages.is-open .pages-sky,
+.pages.is-open .pages-scrim { opacity: 1; }
+
+.page { position: absolute; inset: 0; display: none; }
+.page.is-active { display: block; }
+
+.page-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(env(safe-area-inset-top, 0px) + clamp(20px, 4vw, 40px)) clamp(18px, 5vw, 56px) clamp(40px, 8vw, 80px);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+.page-inner { max-width: 1080px; margin: 0 auto; }
+
+.page-title {
+  margin: 1.2rem 0 1.4rem;
+  font-family: var(--font-hand);
+  font-size: clamp(2.8rem, 9vw, 5.2rem);
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.3);
+}
+.page-title:focus { outline: none; }
+
+.panel {
+  padding: clamp(20px, 3vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 28px;
+  color: #fff;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05));
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+          backdrop-filter: blur(22px) saturate(150%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+.panel h3 { margin: 0 0 0.8rem; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.02em; }
+.panel p { margin: 0 0 0.9rem; line-height: 1.65; color: rgba(255, 255, 255, 0.9); }
+.panel p:last-child { margin-bottom: 0; }
+.panel .lead { font-size: clamp(1.15rem, 2.2vw, 1.45rem); line-height: 1.5; color: #fff; }
+.panel a { color: #fff; text-underline-offset: 4px; }
+
+.page-inner > .panel { margin-bottom: clamp(14px, 2vw, 24px); }
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(14px, 2vw, 24px);
+}
+
+.plain { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; line-height: 1.5; }
+
+.chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips li {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.85rem;
+}
+
+.card { display: flex; flex-direction: column; gap: 0.2rem; }
+.card-media {
+  aspect-ratio: 16 / 10;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.04));
+}
+.card-media img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.card .chips { margin: 0.4rem 0 1rem; }
+.card-link { margin-top: auto; font-weight: 500; }
+
+.credit { margin-top: 2rem; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); text-align: center; }
+.credit a { color: inherit; }
+
+/* Things on a page fade up one after another when it opens */
+.rise {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s var(--ease-out), transform 0.8s var(--ease-out);
+}
+.pages.is-open .rise {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--d, 0) * 90ms + 250ms);
+}
+
+
+/* ------------------------------------------------------------------
+   9. MOTION PREFERENCES & SMALL SCREENS
+   ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .scene, .pages-sky, .pages-scrim, .rise { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  .laptop-glow, .caret, .hint-inner::after { animation: none; }
+}
+
+@media (max-width: 520px) {
+  .dock .glass-btn { padding: 0.85rem 1.05rem; font-size: 0.92rem; }
+  .panel { border-radius: 22px; }
+}
