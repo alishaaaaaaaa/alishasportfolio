@@ -17,6 +17,7 @@
   <script src="script.js" defer></script>
   <script src="cursor.js" defer></script>
   <script src="projects.js" defer></script>
+  <script src="films.js" defer></script>
 </head>
 <body>
 
@@ -80,7 +81,7 @@
       <button class="glass-btn" type="button" data-page="about"     style="--k:0">about me</button>
       <button class="glass-btn" type="button" data-page="projects"  style="--k:1">projects</button>
       <button class="glass-btn" type="button" data-page="community" style="--k:2">community</button>
-      <button class="glass-btn" type="button" data-page="photos"    style="--k:3">photos</button>
+      <button class="glass-btn" type="button" data-page="videography" style="--k:3">videography</button>
     </nav>
 
     <!-- ============ THE PAGES (you zoom "through the window" into these) ============ -->
@@ -123,7 +124,7 @@
               <div class="info-col">
                 <h3>off the clock</h3>
                 <ul class="chips">
-                  <li>photography</li>
+                  <li>videography</li>
                   <li>art</li>
                   <li>hiking</li>
                   <li>movies</li>
@@ -199,7 +200,7 @@
               </li>
 
               <li>
-                <article class="project rise">
+                <article class="project rise" data-preview="videos/projects/echocases.mp4">
                   <span class="project-num" aria-hidden="true">03</span>
                   <div class="project-body">
                     <h3 class="project-name">EchoCases</h3>
@@ -276,34 +277,52 @@
         </div>
       </section>
 
-      <!-- ---------------- PHOTOS ---------------- -->
-      <section class="page" id="page-photos" role="dialog" aria-modal="true" aria-labelledby="photos-title">
+      <!-- ---------------- VIDEOGRAPHY ---------------- -->
+      <section class="page" id="page-videography" role="dialog" aria-modal="true" aria-labelledby="videography-title">
         <div class="page-scroll">
           <div class="page-inner">
             <button class="back-link" type="button" data-back><span aria-hidden="true">←</span> back to the room</button>
-            <h2 class="page-title rise" id="photos-title" tabindex="-1">photos</h2>
+            <h2 class="page-title rise" id="videography-title" tabindex="-1">videography</h2>
 
             <div class="intro rise">
-              <p class="lead">Capturing the beauty of the world, one window at a time.</p>
-              <p>The weather outside this room is real, and so are these. A few favourites from my camera roll.</p>
+              <p class="lead">Capturing the beauty of the world, one frame at a time.</p>
+              <p>Short films from walks around campus, the lakeshore and the city. Open any of them to watch with sound.</p>
             </div>
 
-            <!-- ✏️ ADDING PHOTOS: put them in images/photos/ (JPGs about 1600px
-                 on the long side keep the page fast), then copy one <figure>
-                 per photo. The caption is optional. Any mix of portrait and
-                 landscape works: the gallery packs them into columns. -->
-            <div class="gallery rise">
-              <figure class="photo is-empty" style="--ar: 4/5"><figcaption>place, year</figcaption></figure>
-              <figure class="photo is-empty" style="--ar: 3/2"><figcaption>place, year</figcaption></figure>
-              <figure class="photo is-empty" style="--ar: 1/1"><figcaption>place, year</figcaption></figure>
-              <figure class="photo is-empty" style="--ar: 3/2"><figcaption>place, year</figcaption></figure>
-              <figure class="photo is-empty" style="--ar: 4/5"><figcaption>place, year</figcaption></figure>
-              <figure class="photo is-empty" style="--ar: 3/2"><figcaption>place, year</figcaption></figure>
-              <!-- a real one looks like:
-              <figure class="photo">
-                <img src="images/photos/sunset-dundas.jpg" alt="Orange sunset over the Dundas valley" loading="lazy">
-                <figcaption>dundas valley, 2025</figcaption>
-              </figure> -->
+            <!-- ✏️ ADDING A FILM: for a film called NAME, put these in videos/films/
+                   NAME.mp4            the full film, with sound (opens on click)
+                   NAME-preview.mp4    a short silent loop for the tile (+ NAME-preview.webm)
+                   NAME.jpg            a still shown before the preview plays
+                 then copy a <button class="film"> below into the right row:
+                 landscape films (--w: 16; --h: 9) in the first row, vertical
+                 reels (--w: 9; --h: 16) in the "is-reels" row. Each row lines
+                 its films up at the same height across the full width. -->
+            <div class="films rise">
+              <div class="film-row">
+                <button class="film" type="button" data-film="videos/films/toronto" style="--w: 16; --h: 9">
+                  <img class="film-poster" src="videos/films/toronto.jpg" alt="" loading="lazy">
+                  <span class="film-meta"><span class="film-title">the beauty of toronto</span><span class="film-time">0:13</span></span>
+                </button>
+                <button class="film" type="button" data-film="videos/films/sundown" style="--w: 16; --h: 9">
+                  <img class="film-poster" src="videos/films/sundown.jpg" alt="" loading="lazy">
+                  <span class="film-meta"><span class="film-title">sundown</span><span class="film-time">0:10</span></span>
+                </button>
+              </div>
+              <!-- vertical reels: on phones this row becomes a sideways swipe strip -->
+              <div class="film-row is-reels">
+                <button class="film" type="button" data-film="videos/films/green-and-gold" style="--w: 9; --h: 16">
+                  <img class="film-poster" src="videos/films/green-and-gold.jpg" alt="" loading="lazy">
+                  <span class="film-meta"><span class="film-title">green &amp; gold</span><span class="film-time">0:18</span></span>
+                </button>
+                <button class="film" type="button" data-film="videos/films/lakeshore" style="--w: 9; --h: 16">
+                  <img class="film-poster" src="videos/films/lakeshore.jpg" alt="" loading="lazy">
+                  <span class="film-meta"><span class="film-title">lakeshore</span><span class="film-time">0:15</span></span>
+                </button>
+                <button class="film" type="button" data-film="videos/films/under-the-trees" style="--w: 9; --h: 16">
+                  <img class="film-poster" src="videos/films/under-the-trees.jpg" alt="" loading="lazy">
+                  <span class="film-meta"><span class="film-title">under the trees</span><span class="film-time">0:21</span></span>
+                </button>
+              </div>
             </div>
             <p class="page-footer">weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo</a></p>
           </div>
