@@ -17,18 +17,17 @@
       small links under the buttons instead.
 
    4. THE COFFEE CHAT FORM sends straight from the browser through
-      FormSubmit. No account is needed: the very first message sends a
-      one-time "activate" email to CONTACT_EMAIL. Click it once and every
-      message after that arrives normally. If sending ever fails, it falls
-      back to opening the visitor's email app with everything filled in.
+      Web3Forms (free). Get an access key at web3forms.com by typing in
+      your email; the key arrives in your inbox. Paste it into
+      WEB3FORMS_KEY below. Messages then arrive in that inbox.
+      Until a key is added, or if sending ever fails, the form offers to
+      open the visitor's email app with everything filled in instead.
    ===================================================================== */
 (() => {
   'use strict';
 
   const CONTACT_EMAIL = 'alishafaridi@gmail.com';
-  
-
-const FORM_ENDPOINT = 'https://formsubmit.co/ajax/ccf2bdda7ef744a7a13f7f0f44f4192f';
+  const WEB3FORMS_KEY = 'ef71607c-2b1d-4196-8d36-72356bcb6513';   // ✏️ paste your Web3Forms access key between the quotes
   const DOCK_AT = 0.56;
 
   const OUTLINES = {
@@ -174,15 +173,16 @@ const FORM_ENDPOINT = 'https://formsubmit.co/ajax/ccf2bdda7ef744a7a13f7f0f44f419
     status.textContent = '';
     status.dataset.state = '';
     try {
-      const response = await fetch(FORM_ENDPOINT, {
+      if (!WEB3FORMS_KEY.trim()) throw new Error('No Web3Forms key yet');
+      const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
+          access_key: WEB3FORMS_KEY.trim(),
+          subject,
+          from_name: 'your portfolio',
           name, email, message,
-          _subject: subject,
-          _replyto: email,
-          _template: 'box',
-          _captcha: 'false',
+          replyto: email,
         }),
       });
       const result = await response.json().catch(() => ({}));
