@@ -10,10 +10,12 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Fraunces (soft serif) for headings, DM Sans for everything else -->
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
+  <script src="cursor.js" defer></script>
 </head>
 <body>
 
@@ -89,25 +91,27 @@
       <section class="page" id="page-about" role="dialog" aria-modal="true" aria-labelledby="about-title">
         <div class="page-scroll">
           <div class="page-inner">
-            <button class="glass-btn glass-btn--small" type="button" data-back>← back to the room</button>
+            <button class="back-link" type="button" data-back><span aria-hidden="true">←</span> back to the room</button>
             <h2 class="page-title rise" id="about-title" tabindex="-1">about me</h2>
 
             <!-- ✏️ EDIT: replace everything in [brackets] with your own words -->
-            <div class="panel rise">
-              <p class="lead">[Hello, I'm Alisha]</p>
+            <div class="intro rise">
+              <p class="lead">[Write a short, warm intro here: who you are, what you do, and what you're working toward.]</p>
               <p>[A second paragraph is a good place for your story, your values, or what you love making.]</p>
             </div>
 
-            <div class="grid-3">
-              <div class="panel rise">
+            <!-- one panel, three columns (they stack on phones) -->
+            <div class="panel info-row rise">
+              <div class="info-col">
                 <h3>currently</h3>
                 <ul class="plain">
-                  <li>Software Engineering @ McMaster University</li>
-                  <li>Looking for Summer 2027 nternship opportunities</li>
+                  <li>[what you're studying or working on]</li>
+                  <li>[what you're learning]</li>
+                  <li>[what you're looking for]</li>
                 </ul>
               </div>
 
-              <div class="panel rise">
+              <div class="info-col">
                 <h3>skills</h3>
                 <ul class="chips">
                   <li>skill one</li>
@@ -117,17 +121,16 @@
                 </ul>
               </div>
 
-              <div class="panel rise">
+              <div class="info-col">
                 <h3>say hi</h3>
                 <ul class="plain">
-                  <li><a href="mailto:alishafaridi@gmail.com">alishafaridi@gmail.com</a></li>
-                  <li><a href="www.linkedin.com/in/alisha-faridi" target="_blank" rel="noopener">linkedin</a></li>
-                  <li><a href="https://github.com/alishaaaaaaaa" target="_blank" rel="noopener">github</a></li>
+                  <li><a href="mailto:you@example.com">you@example.com</a></li>
+                  <li><a href="https://www.linkedin.com/" target="_blank" rel="noopener">linkedin</a></li>
+                  <li><a href="https://github.com/" target="_blank" rel="noopener">github</a></li>
                 </ul>
               </div>
             </div>
-
-            <p class="credit rise"> real-time weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a></p>
+            <p class="page-footer">weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo</a></p>
           </div>
         </div>
       </section>
@@ -136,7 +139,7 @@
       <section class="page" id="page-projects" role="dialog" aria-modal="true" aria-labelledby="projects-title">
         <div class="page-scroll">
           <div class="page-inner">
-            <button class="glass-btn glass-btn--small" type="button" data-back>← back to the room</button>
+            <button class="back-link" type="button" data-back><span aria-hidden="true">←</span> back to the room</button>
             <h2 class="page-title rise" id="projects-title" tabindex="-1">projects</h2>
 
             <div class="grid-3">
@@ -167,6 +170,7 @@
                 <a class="card-link" href="https://example.com" target="_blank" rel="noopener">view project →</a>
               </article>
             </div>
+            <p class="page-footer">weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo</a></p>
           </div>
         </div>
       </section>
@@ -175,33 +179,34 @@
       <section class="page" id="page-community" role="dialog" aria-modal="true" aria-labelledby="community-title">
         <div class="page-scroll">
           <div class="page-inner">
-            <button class="glass-btn glass-btn--small" type="button" data-back>← back to the room</button>
+            <button class="back-link" type="button" data-back><span aria-hidden="true">←</span> back to the room</button>
             <h2 class="page-title rise" id="community-title" tabindex="-1">community</h2>
 
-            <div class="panel rise">
-              <p class="lead">I love to stay connected by being involved withing my community!</p>
+            <div class="intro rise">
+              <p class="lead">[A sentence or two about why community matters to you and how you show up for it.]</p>
             </div>
 
             <div class="grid-3">
               <!-- ✏️ EDIT: groups, clubs, volunteering, talks, events, newsletters, anything -->
               <article class="panel card rise">
-                <h3>deltahacks</h3>
+                <h3>community one</h3>
                 <p>[Your role and what you do there.]</p>
                 <a class="card-link" href="https://example.com" target="_blank" rel="noopener">visit →</a>
               </article>
 
               <article class="panel card rise">
-                <h3>mcmaster islamic relief</h3>
+                <h3>community two</h3>
                 <p>[Your role and what you do there.]</p>
                 <a class="card-link" href="https://example.com" target="_blank" rel="noopener">visit →</a>
               </article>
 
               <article class="panel card rise">
-                <h3>cale</h3>
+                <h3>community three</h3>
                 <p>[Your role and what you do there.]</p>
                 <a class="card-link" href="https://example.com" target="_blank" rel="noopener">visit →</a>
               </article>
             </div>
+            <p class="page-footer">weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo</a></p>
           </div>
         </div>
       </section>

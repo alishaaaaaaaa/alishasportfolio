@@ -297,6 +297,8 @@
 
     const roomSrc = CONFIG.rooms[`${scene.tone}-${scene.time}`];
     if (roomSrc && roomEl.getAttribute('src') !== roomSrc) roomEl.src = roomSrc;
+    // the same art, blurred, fills the empty space around the room on tall (phone) screens
+    if (roomSrc) stage.style.setProperty('--room-img', `url("${roomSrc}")`);
     const skyKey = `${scene.sky}-${scene.time}`;
     setVideo(skyVideo, CONFIG.videos[skyKey], skyKey);
 

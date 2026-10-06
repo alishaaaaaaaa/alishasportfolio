@@ -39,6 +39,9 @@
   --scroll-distance: 260svh;
 
   --font-ui: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* a soft, warm serif for headings: matches the lo-fi illustration better
+     than a heavy sans. SOFT 100 rounds off its corners. */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
 
   --ease: cubic-bezier(0.65, 0, 0.25, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -57,10 +60,11 @@
 
 html {
   background: #04050b;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+  /* The scroll only drives the blinds, so hide the scrollbar: it would
+     otherwise sit as a strip beside the full-bleed scene. */
+  scrollbar-width: none;
 }
+html::-webkit-scrollbar { display: none; }
 html.is-locked { overflow: hidden; }
 
 body {
@@ -133,6 +137,24 @@ body::after {
   background: var(--bg);
 }
 
+/* On tall screens the art doesn't fill the height. Instead of black bars,
+   the same art is shown huge, blurred and dimmed behind it (script.js sets
+   --room-img), and the art's top/bottom edges are feathered into it. */
+.viewport::before {
+  content: "";
+  position: absolute;
+  inset: -80px;
+  z-index: -1;
+  /* the art has a see-through window, so a wall-coloured fill sits under it */
+  background:
+    var(--room-img, none) 50% 35% / auto 150% no-repeat,
+    var(--slat-lo);
+  filter: blur(48px) brightness(0.5) saturate(1.15);
+  transform: scale(1.1);
+  pointer-events: none;
+  opacity: var(--light, 0);   /* stays dark until the blinds open, like the room */
+}
+
 .scene {
   --w: max(100cqw, calc(100cqh * var(--ratio)));
   --h: calc(var(--w) / var(--ratio));
@@ -153,6 +175,14 @@ body::after {
 @media (max-aspect-ratio: 1/1) {
   /* portrait: zoom in on the middle of the room instead of cropping to a sliver */
   .scene { --w: min(200cqw, max(100cqw, calc(100cqh * var(--ratio)))); }
+}
+@media (max-aspect-ratio: 85/100) {
+  /* tall phones, where the art no longer fills the height: feather its
+     top and bottom edges into the blurred backdrop behind it */
+  .scene {
+    -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+            mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+  }
 }
 
 .room {
@@ -341,13 +371,14 @@ body::after {
 .typed {
   margin: 0;
   min-height: 1.1em;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  font-size: clamp(2.1rem, calc(6vmin + 1rem), 5rem);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  letter-spacing: -0.02em;
+  font-size: clamp(2.2rem, calc(5.5vmin + 1rem), 4.6rem);
   line-height: 1.1;
   color: #f6eddc;
-  text-shadow: 0 0 28px rgba(255, 236, 200, 0.35);
+  text-shadow: 0 0 24px rgba(255, 236, 200, 0.22);
 }
 
 .weather-line {
@@ -384,9 +415,10 @@ body::after {
   border: 0;
   background: none;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.72);
-  font: 500 0.82rem/1 var(--font-ui);
-  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.82);
+  font: 500 0.9rem/1 var(--font-ui);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
   opacity: var(--hero, 1);
   visibility: hidden;
 }
@@ -417,70 +449,34 @@ body::after {
   position: relative;
   appearance: none;
   cursor: pointer;
-  padding: 1rem 1.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.38);
+  padding: 0.95rem 1.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 999px;
   color: #fff;
   font: 500 1rem/1 var(--font-ui);
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.26) 0%,
-    rgba(255, 255, 255, 0.08) 55%,
-    rgba(255, 255, 255, 0.16) 100%
-  );
-  -webkit-backdrop-filter: blur(16px) saturate(170%);
-          backdrop-filter: blur(16px) saturate(170%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.12),
-    0 12px 32px rgba(0, 0, 0, 0.28);
+  letter-spacing: 0.01em;
+  /* one calm, slightly dark tint: reads cleanly over both the bright day
+     art and the dark night art (a white tint turns muddy over warm colours) */
+  background: rgba(16, 12, 22, 0.34);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+          backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 8px 24px rgba(0, 0, 0, 0.22);
   transition:
     opacity 0.45s ease,
     transform 0.25s var(--ease-out),
     background 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-/* the bright "sheen" across the top half of the glass */
-.glass-btn::before {
-  content: "";
-  position: absolute;
-  inset: 1px 1px 52% 1px;
-  border-radius: 999px 999px 45% 45%;
-  background: linear-gradient(rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
-  opacity: 0.75;
-  pointer-events: none;
+    border-color 0.25s ease;
 }
 
 .glass-btn:hover {
   transform: translateY(-2px);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.36) 0%,
-    rgba(255, 255, 255, 0.12) 55%,
-    rgba(255, 255, 255, 0.22) 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.16),
-    0 16px 38px rgba(0, 0, 0, 0.32);
+  background: rgba(16, 12, 22, 0.5);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 .glass-btn:active { transform: translateY(0) scale(0.98); }
 .glass-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
 .glass-btn--small { padding: 0.75rem 1.25rem; font-size: 0.9rem; }
-
-/* The "back to the room" button sits fixed to the bottom-right of the page
-   instead of in the normal flow up top, so the title can lead top-left and
-   the exit stays reachable no matter how far you've scrolled down a page. */
-[data-back].glass-btn--small {
-  position: fixed;
-  right: clamp(18px, 5vw, 56px);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(18px, 4vw, 40px));
-  z-index: 20;
-}
 
 /* the row of three buttons */
 .dock {
@@ -523,14 +519,22 @@ body::after {
 .pages-sky {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   background: linear-gradient(var(--sky-top), var(--sky-bottom));
   opacity: 0;
   transition: opacity 0.7s ease;
 }
+/* The weather video is low-res when stretched to the whole screen and too
+   busy to read text over. Blurring it keeps the colour and the motion
+   (rain, leaves, city lights) as atmosphere, without competing with you. */
+.pages-sky video {
+  filter: blur(14px) saturate(1.1);
+  transform: scale(1.08);
+}
 .pages-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(rgba(6, 8, 20, 0.35), rgba(6, 8, 20, 0.62));
+  background: linear-gradient(rgba(8, 8, 18, 0.5), rgba(8, 8, 18, 0.72));
   opacity: 0;
   transition: opacity 0.7s ease;
 }
@@ -545,178 +549,206 @@ body::after {
   inset: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: calc(env(safe-area-inset-top, 0px) + clamp(20px, 4vw, 40px)) clamp(18px, 5vw, 56px) clamp(40px, 8vw, 80px);
+  padding:
+    calc(env(safe-area-inset-top, 0px) + clamp(24px, 5vw, 56px))
+    clamp(20px, 5vw, 56px)
+    calc(env(safe-area-inset-bottom, 0px) + clamp(24px, 4vw, 40px));
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
-.page-inner { max-width: 1080px; margin: 0 auto; }
+.page-inner { max-width: 1040px; margin: 0 auto; }
+
+/* "← back to the room": a quiet text link above the title, where people
+   look for it, instead of a floating button that covers content on phones */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 clamp(20px, 4vw, 36px);
+  padding: 0.4rem 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  font: 500 0.92rem/1 var(--font-ui);
+  letter-spacing: 0.01em;
+  transition: color 0.25s ease;
+}
+.back-link span { display: inline-block; transition: transform 0.3s var(--ease-out); }
+.back-link:hover { color: #fff; }
+.back-link:hover span { transform: translateX(-4px); }
+.back-link:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 4px; }
 
 .page-title {
-  position: relative;
-  display: inline-block;
-  margin: 0 0 1.4rem;
-  text-align: left;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  font-size: clamp(2.8rem, 9vw, 5.2rem);
+  display: block;
+  margin: 0 0 clamp(24px, 4vw, 40px);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  letter-spacing: -0.025em;
+  font-size: clamp(2.6rem, 7vw, 4.4rem);
   line-height: 1;
   color: #fff;
-  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.3);
 }
 .page-title:focus { outline: none; }
-/* a soft underline glow in the room's own weather colour, so the page you
-   land on still feels like the same place you scrolled into */
-.page-title::after {
-  content: "";
-  position: absolute;
-  left: 2px;
-  right: 2px;
-  bottom: 0.08em;
-  height: 0.42em;
-  background: linear-gradient(90deg, var(--glow, rgba(255,255,255,.4)), transparent 85%);
-  filter: blur(14px);
-  opacity: 0.8;
-  z-index: -1;
-  border-radius: 999px;
+
+/* intro text sits straight on the page, no box: one less layer */
+.intro { max-width: 46rem; margin-bottom: clamp(28px, 5vw, 48px); }
+.intro p { margin: 0 0 1rem; line-height: 1.7; color: rgba(255, 255, 255, 0.78); }
+.intro p:last-child { margin-bottom: 0; }
+.lead {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 100, "opsz" 48;
+  font-size: clamp(1.3rem, 2.4vw, 1.65rem);
+  line-height: 1.45 !important;
+  color: #fff !important;
 }
 
 .panel {
-  padding: clamp(20px, 3vw, 34px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 28px;
+  padding: clamp(22px, 3vw, 32px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
   color: #fff;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05));
-  -webkit-backdrop-filter: blur(22px) saturate(150%);
-          backdrop-filter: blur(22px) saturate(150%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 20px 50px rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+          backdrop-filter: blur(20px) saturate(130%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
+/* small uppercase labels: a quiet hierarchy under the big serif titles */
 .panel h3 {
-  margin: 0 0 0.8rem;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
+  margin: 0 0 1rem;
+  font: 600 0.74rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
 }
-/* a little glowing dot picks up the room's current weather colour */
-.panel h3::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--glow, #fff);
-  box-shadow: 0 0 10px 2px var(--glow, transparent);
-  flex-shrink: 0;
+.card h3 {
+  /* project / community names are titles, not labels */
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-variation-settings: "SOFT" 100, "opsz" 36;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: #fff;
 }
-.panel p { margin: 0 0 0.9rem; line-height: 1.65; color: rgba(255, 255, 255, 0.9); }
+.panel p { margin: 0 0 0.9rem; line-height: 1.65; color: rgba(255, 255, 255, 0.78); }
 .panel p:last-child { margin-bottom: 0; }
-.panel .lead { font-size: clamp(1.15rem, 2.2vw, 1.45rem); line-height: 1.5; color: #fff; }
-.panel a {
+
+.panel a, .intro a {
   color: #fff;
   text-underline-offset: 4px;
-  text-decoration-color: var(--glow, rgba(255, 255, 255, 0.5));
-  transition: text-decoration-color 0.25s ease, color 0.25s ease;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  transition: text-decoration-color 0.25s ease;
 }
-.panel a:hover { text-decoration-color: currentColor; }
+.panel a:hover, .intro a:hover { text-decoration-color: currentColor; }
+
+/* about: one panel split into three columns with hairline dividers */
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 0;
+}
+.info-col { padding: clamp(22px, 3vw, 32px); }
+.info-col + .info-col { border-left: 1px solid rgba(255, 255, 255, 0.1); }
+@media (max-width: 760px) {
+  .info-row { grid-template-columns: 1fr; }
+  .info-col + .info-col { border-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+}
 
 .page-inner > .panel { margin-bottom: clamp(14px, 2vw, 24px); }
-
-/* panels rise in already (.rise); give them a gentle hover lift too, so the
-   page feels alive even before you click anything */
-.panel.rise {
-  transition:
-    opacity 0.7s var(--ease-out), transform 0.8s var(--ease-out),
-    box-shadow 0.35s ease, border-color 0.35s ease;
-}
-.panel:not(.card):hover {
-  border-color: rgba(255, 255, 255, 0.34);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 24px 60px rgba(0, 0, 0, 0.32), 0 0 0 1px var(--glow, transparent);
-}
 
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-  gap: clamp(14px, 2vw, 24px);
+  gap: clamp(14px, 2vw, 22px);
 }
 
-.plain { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; line-height: 1.5; }
+.plain { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.65rem; line-height: 1.5; color: rgba(255, 255, 255, 0.85); }
 
-.chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+/* chips are labels, not buttons, so they don't react to hover */
+.chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
 .chips li {
-  padding: 0.35rem 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  padding: 0.38rem 0.75rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  font-size: 0.85rem;
-  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
-}
-.chips li:hover {
-  border-color: var(--glow, rgba(255, 255, 255, 0.6));
-  background: rgba(255, 255, 255, 0.16);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.82rem;
+  line-height: 1.2;
 }
 
+/* Cards are the only things that lift on hover, because they're clickable */
 .card {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  transition: transform 0.35s var(--ease-out);
+  transition:
+    opacity 0.7s var(--ease-out), transform 0.5s var(--ease-out),
+    border-color 0.3s ease, background 0.3s ease;
 }
-.card:hover { transform: translateY(-6px); }
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.09);
+}
 .card-media {
   aspect-ratio: 16 / 10;
-  margin-bottom: 1rem;
+  margin: calc(clamp(22px, 3vw, 32px) * -1 + 8px) calc(clamp(22px, 3vw, 32px) * -1 + 8px) 1.2rem;
   overflow: hidden;
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.04));
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
-  transition: box-shadow 0.35s ease;
-}
-.card:hover .card-media {
-  box-shadow: 0 0 0 1px var(--glow, rgba(255, 255, 255, 0.4)), 0 18px 40px rgba(0, 0, 0, 0.35);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03));
 }
 .card-media img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s var(--ease-out);
+  transition: transform 0.7s var(--ease-out);
 }
-.card:hover .card-media img { transform: scale(1.06); }
-.card .chips { margin: 0.4rem 0 1rem; }
+.card:hover .card-media img { transform: scale(1.04); }
+.card .chips { margin: 0.2rem 0 1.2rem; }
 .card-link {
   margin-top: auto;
+  align-self: flex-start;
   font-weight: 500;
+  font-size: 0.92rem;
   color: #fff;
-  text-decoration-color: var(--glow, rgba(255, 255, 255, 0.5));
-  text-underline-offset: 4px;
-  transition: text-decoration-color 0.25s ease, letter-spacing 0.25s ease;
+  text-decoration: none !important;
 }
-.card:hover .card-link { text-decoration-color: currentColor; letter-spacing: 0.01em; }
+/* make the whole card clickable through its link */
+.card { position: relative; }
+.card-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.card-link:focus-visible { outline: none; }
+.card:has(.card-link:focus-visible) { outline: 2px solid #fff; outline-offset: 3px; }
 
-.credit { margin-top: 2rem; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); text-align: center; }
-.credit a { color: inherit; }
+/* small credit line at the end of every page */
+.page-footer {
+  margin: clamp(40px, 8vw, 72px) 0 0;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+.page-footer a { color: inherit; text-underline-offset: 3px; }
+.page-footer a:hover { color: #fff; }
 
 /* Things on a page fade up one after another when it opens */
 .rise {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(20px);
   transition: opacity 0.7s var(--ease-out), transform 0.8s var(--ease-out);
 }
 .pages.is-open .rise {
   opacity: 1;
   transform: none;
-  transition-delay: calc(var(--d, 0) * 90ms + 250ms);
+  transition-delay: calc(var(--d, 0) * 80ms + 250ms);
 }
-
+/* once a card has risen in, hovering it lifts straight away */
+.pages.is-open .card.rise:hover { transform: translateY(-4px); transition-delay: 0s; }
 
 /* ------------------------------------------------------------------
    9. AMBIENT MOTES
-   Soft floating dust, fixed to the screen (not the scrolling page) so it
-   drifts over the room and every page alike — one continuous, subtle
-   animation that ties the whole site together. Tinted with the same
+   Soft floating dust drifting up over the room (it stays behind the
+   pages so it never floats across your text). Tinted with the same
    --glow colour the room itself uses, so it always matches the mood.
    ------------------------------------------------------------------ */
 .motes {
@@ -724,7 +756,7 @@ body::after {
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  z-index: 500;              /* above the room + pages, below nothing needs to be on top of it */
+  z-index: 9;                /* above the room, but behind the pages so it never drifts over your text */
   mix-blend-mode: screen;
 }
 
@@ -771,5 +803,67 @@ body::after {
 
 @media (max-width: 520px) {
   .dock .glass-btn { padding: 0.85rem 1.05rem; font-size: 0.92rem; }
-  .panel { border-radius: 22px; }
+  .panel { border-radius: 18px; }
 }
+
+
+/* ------------------------------------------------------------------
+   11. FIREFLY CURSOR  (built by cursor.js; mouse/trackpad only)
+   A bright dot exactly at the pointer, a soft halo in the weather colour
+   that drifts behind it, and a short trail of dust specks.
+   ------------------------------------------------------------------ */
+html.has-custom-cursor,
+html.has-custom-cursor * { cursor: none !important; }
+
+.cursor-dot,
+.cursor-halo,
+.cursor-trail {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 600;            /* above the room, the pages and the motes */
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.cursor-visible .cursor-dot,
+.cursor-visible .cursor-halo { opacity: 1; }
+.cursor-trail { width: 100vw; height: 100vh; opacity: 1; mix-blend-mode: screen; }
+
+/* the "firefly" itself; the thin dark ring keeps it visible on bright day art */
+.cursor-dot {
+  width: 8px; height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: #fffaf0;
+  box-shadow:
+    0 0 0 1px rgba(30, 20, 10, 0.25),
+    0 0 10px 2px var(--glow, rgba(255, 220, 170, 0.7));
+  transition: opacity 0.3s ease, width 0.25s var(--ease-out), height 0.25s var(--ease-out), margin 0.25s var(--ease-out);
+}
+
+/* its glow, which lags behind for a soft, floaty feel */
+.cursor-halo {
+  width: 44px; height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: radial-gradient(closest-side, var(--glow, rgba(255, 220, 170, 0.5)), transparent);
+  mix-blend-mode: screen;
+  transition:
+    opacity 0.3s ease,
+    width 0.35s var(--ease-out), height 0.35s var(--ease-out), margin 0.35s var(--ease-out),
+    background 0.35s ease, border-color 0.35s ease;
+}
+
+/* over something clickable: the halo opens into a soft ring, the dot shrinks */
+.cursor-hover .cursor-halo {
+  width: 58px; height: 58px;
+  margin: -29px 0 0 -29px;
+  border-color: rgba(255, 255, 255, 0.55);
+  background: radial-gradient(closest-side, transparent 60%, var(--glow, rgba(255, 220, 170, 0.4)));
+  mix-blend-mode: normal;
+}
+.cursor-hover .cursor-dot { width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; }
+
+/* pressing squeezes it a little */
+.cursor-down .cursor-halo { width: 34px; height: 34px; margin: -17px 0 0 -17px; }
