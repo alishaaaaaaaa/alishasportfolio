@@ -445,6 +445,89 @@ body::after {
 .hint:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 8px; }
 
 
+/* ---- corners: live badge (top-left) + contact links (top-right) ---- */
+.corner {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + clamp(16px, 2.6vw, 28px));
+  z-index: 8;
+  margin: 0;
+  font: 500 0.82rem/1 var(--font-ui);
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.corner-left { left: clamp(16px, 2.8vw, 32px); }
+.corner-right { right: clamp(16px, 2.8vw, 32px); }
+.is-typed .corner { opacity: 1; }
+.is-leaving .corner { opacity: 0; pointer-events: none; transition-duration: 0.3s; }
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.85rem 0.5rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(14, 11, 20, 0.34);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+  text-shadow: none;
+}
+/* a softly pulsing "live" dot, tinted with the room's weather colour */
+.live-dot {
+  position: relative;
+  flex: none;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #ff8a7a;
+}
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: status-ping 2.4s ease-out infinite;
+}
+.live-weather {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding-left: 0.55rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.live-weather[hidden] { display: none; }
+.live-icon { display: inline-flex; width: 15px; height: 15px; }
+.live-icon svg { width: 100%; height: 100%; }
+
+/* same link style as "say hi" on the about page */
+.corner-links { display: flex; align-items: center; gap: 1.1rem; padding: calc(0.5rem + 1px) 0; }   /* same height as the badge, so both line up */
+.corner-links a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  transition: text-decoration-color 0.25s ease;
+}
+.corner-links a:hover { text-decoration-color: currentColor; }
+.corner-links a:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 3px; }
+.corner-links .short { display: none; }
+
+@media (max-width: 760px) {
+  .corner { font-size: 0.76rem; }
+  .live-text { display: none; }             /* phones: just the dot + weather */
+  .live-badge::before { content: "live"; order: 1; }
+  .live-dot { order: 0; }
+  .live-weather { order: 2; }
+  .corner-links { gap: 0.85rem; }
+  .corner-links .long { display: none; }
+  .corner-links .short { display: inline; }
+}
+
 /* ------------------------------------------------------------------
    7. THE GLASS BUTTONS
    ------------------------------------------------------------------ */
@@ -1433,6 +1516,7 @@ html.modal-open { overflow: hidden; }
    ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   .status-dot::after { animation: none; }
+  .live-dot::after { animation: none; }
   .deck-slide { transition-duration: 0.01s; }
   .detail-modal, .detail-card, .reel-video { transition-duration: 0.01s; }
   .obj-glow { animation: none !important; }

@@ -27,7 +27,7 @@
     // Rain, snow, storms, or anything colder uses the "cool" art.
     warmAtOrAboveC: 15,
 
-    weatherCacheMinutes: 20,   // don't ask the weather service more often than this
+    weatherCacheMinutes: 15,   // how often the weather refreshes (minutes)
 
     slatCount: 14,             // how many blind slats
     moteCount: 18,             // how many floating dust motes drift up the screen
@@ -269,17 +269,25 @@
   // Fills in and reveals the "this room is live" caption — only called with
   // real weather data (cached or freshly fetched), never the guessed
   // placeholder scene, so it's never showing something untrue.
+  // Small line-art icons for the "live" badge in the top-left corner
+  const WEATHER_SVG = {
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/>',
+    moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+    cloud: '<path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 10.5 3.75 3.75 0 0 0 7 18z"/>',
+    rain: '<path d="M7 15h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 7.5 3.75 3.75 0 0 0 7 15z"/><path d="M9 18l-1 2.5M13 18l-1 2.5M17 18l-1 2.5"/>',
+    snow: '<path d="M7 15h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 7.5 3.75 3.75 0 0 0 7 15z"/><path d="M9 19h.01M12 21h.01M15 19h.01"/>',
+    storm: '<path d="M7 15h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 7.5 3.75 3.75 0 0 0 7 15z"/><path d="M12.5 15l-2 3.5h3l-2 3.5"/>',
+  };
   function setWeatherLine(weather, scene) {
-    const icon = SKY_ICON[`${scene.sky}-${scene.time}`] || '';
-    const temp = Math.round(weather.temp);
-    state.weatherLineText =
-      `${icon} it's ${temp}°C and ${SKY_WORD[scene.sky]} in ${CONFIG.locationLabel} right now, ` +
-      `this room updates to match it, live.`;
-    revealWeatherLine();
+    const box = document.getElementById('live-weather');
+    if (!box) return;
+    const kind = scene.sky === 'clear' ? (scene.time === 'night' ? 'moon' : 'sun') : scene.sky;
+    box.querySelector('.live-icon').innerHTML =
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${WEATHER_SVG[kind] || WEATHER_SVG.cloud}</svg>`;
+    box.querySelector('.live-temp').textContent = `${Math.round(weather.temp)}°C · ${CONFIG.locationLabel.split(',')[0]}`;
+    box.setAttribute('aria-label', `${Math.round(weather.temp)} degrees and ${SKY_WORD[scene.sky]} in ${CONFIG.locationLabel}`);
+    box.hidden = false;
   }
-
-  // Only shows once the greeting has finished typing AND we have real
-  // weather text, whichever of those finishes second.
   function revealWeatherLine() {
     if (!state.weatherLineText || !state.typed) return;
     weatherLineEl.textContent = state.weatherLineText;
@@ -318,6 +326,13 @@
     const everythingForced = ['time', 'sky', 'tone'].every((key) => key in overrides);
     if (cached || everythingForced) return;
 
+    await refreshWeather();
+  }
+
+  // Ask for the current weather and update the room + the corner badge.
+  async function refreshWeather() {
+    const overrides = urlOverrides();
+    if (['time', 'sky', 'tone'].every((key) => key in overrides)) return;
     try {
       const weather = await fetchWeather();
       writeCache(weather);
@@ -328,6 +343,16 @@
       console.warn('[portfolio] Could not get the weather, using a default scene.', error);
     }
   }
+
+  // Keep it live while the site stays open: check again every
+  // weatherCacheMinutes, and right away when someone comes back to the tab
+  // after a while. (Nothing runs while the tab is in the background.)
+  window.setInterval(() => {
+    if (!document.hidden) refreshWeather();
+  }, CONFIG.weatherCacheMinutes * 60000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !readCache()) refreshWeather();
+  });
 
   // Friendly messages when a file is missing
   roomEl.addEventListener('error', () => {
