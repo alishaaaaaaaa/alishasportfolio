@@ -154,68 +154,97 @@
             <button class="back-link" type="button" data-back><span aria-hidden="true">←</span> back to the room</button>
             <h2 class="page-title rise" id="projects-title" tabindex="-1">projects</h2>
 
-            <!-- ✏️ PREVIEWS: add data-preview to a project's <article> with one or
-                 more clips/photos separated by commas, e.g.
-                 data-preview="videos/projects/roomify.mp4, images/projects/roomify-1.jpg"
-                 On a computer they cycle in a card beside the cursor while you
-                 hover; on a phone they're a swipeable strip. No data-preview = no preview. -->
+            <!-- ✏️ HOW THESE WORK: each row is a short summary. Clicking it opens a
+                 popup built from the <template class="detail"> inside that row:
+                   data-media    photos/clips for the popup, separated by commas
+                   data-eyebrow  the small label above the title
+                 Everything inside the <template> becomes the popup's text. -->
             <ol class="project-list">
               <li>
-                <article class="project rise" data-preview="videos/projects/roomify.mp4">
+                <article class="project rise">
                   <span class="project-num" aria-hidden="true">01</span>
                   <div class="project-body">
-                    <h3 class="project-name">Roomify</h3>
+                    <h3 class="project-name"><button class="project-open" type="button" aria-haspopup="dialog">Roomify</button></h3>
                     <p class="project-desc">Design a room, furnish it with real products you can buy, walk through it in 3D, and check out.</p>
+                    <ul class="chips"><li>React</li><li>TypeScript</li><li>three.js</li><li>Shopify API</li></ul>
+                  </div>
+                  <span class="project-more" aria-hidden="true">view <span>→</span></span>
+                  <template class="detail" data-eyebrow="project 01" data-media="videos/projects/roomify.mp4">
+                    <p class="detail-lead">Design a room, furnish it with real products you can actually buy, walk through it in 3D, and check out.</p>
+                    <p>Roomify pulls live furniture from a Shopify store, including prices, photos, real-world dimensions and 3D models. You draw your room, drag pieces into a to-scale floor plan, then view it as a textured 3D scene or walk around inside it. When it feels right, “Buy this room” builds a real Shopify cart and sends you to checkout.</p>
+                    <h4>highlights</h4>
                     <ul class="project-points">
-                      <li>Draw any room shape and drag furniture into a to-scale plan with snapping, collision and auto-layout</li>
-                      <li>First-person 3D walkthrough with textured floors and real product models</li>
-                      <li>Live prices from the Shopify Storefront API and one-click checkout</li>
+                      <li>Draw any room shape, with doors and windows that become real openings in 3D</li>
+                      <li>Furniture can't overlap or leave the room: collision uses the separating-axis theorem on rotated pieces, plus snapping, alignment guides and a “furnish for me” auto-layout</li>
+                      <li>First-person walk mode with collision against walls and furniture</li>
+                      <li>Share links encode the whole room in the URL, with no accounts or database</li>
+                      <li>The Shopify token never reaches the browser; every API call runs server-side</li>
                     </ul>
-                    <ul class="chips"><li>React</li><li>TypeScript</li><li>three.js</li><li>Shopify API</li><li>Tailwind</li></ul>
-                  </div>
-                  <div class="project-links">
-                    <a href="https://roomify-zz16.onrender.com" target="_blank" rel="noopener">live <span aria-hidden="true">↗</span></a>
-                    <a href="https://github.com/alishaaaaaaaa/roomify" target="_blank" rel="noopener">code <span aria-hidden="true">↗</span></a>
-                  </div>
+                    <h4>built with</h4>
+                    <ul class="chips"><li>React</li><li>React Router</li><li>TypeScript</li><li>three.js</li><li>react-three-fiber</li><li>Zustand</li><li>Tailwind</li><li>Shopify Storefront API</li></ul>
+                    <p class="detail-links">
+                      <a href="https://roomify-zz16.onrender.com" target="_blank" rel="noopener">live site <span aria-hidden="true">↗</span></a>
+                      <a href="https://github.com/alishaaaaaaaa/roomify" target="_blank" rel="noopener">code <span aria-hidden="true">↗</span></a>
+                    </p>
+                  </template>
                 </article>
               </li>
 
               <li>
-                <article class="project rise" data-preview="videos/projects/brain-surgery-simulator.mp4">
+                <article class="project rise">
                   <span class="project-num" aria-hidden="true">02</span>
                   <div class="project-body">
-                    <h3 class="project-name">IC-PC Aneurysm Clipping Simulator</h3>
-                    <p class="project-desc">A browser-based simulator of microsurgical brain aneurysm clipping, seen through an operating microscope. In English and French.</p>
-                    <ul class="project-points">
-                      <li>Six guided surgical steps with a mentor, live vitals and an end-of-case debrief</li>
-                      <li>Ten instruments, including Doppler, ICG and an endoscope</li>
-                      <li>Procedural anatomy and a bleeding, flow and rupture model, backed by tests</li>
-                    </ul>
+                    <h3 class="project-name"><button class="project-open" type="button" aria-haspopup="dialog">IC-PC Aneurysm Clipping Simulator</button></h3>
+                    <p class="project-desc">A browser-based simulator of microsurgical brain aneurysm clipping, seen through an operating microscope.</p>
                     <ul class="chips"><li>TypeScript</li><li>three.js</li><li>Web Audio</li><li>Vitest</li></ul>
                   </div>
-                  <div class="project-links">
-                    <a href="https://github.com/alishaaaaaaaa/brain-surgery-simulator" target="_blank" rel="noopener">code <span aria-hidden="true">↗</span></a>
-                  </div>
+                  <span class="project-more" aria-hidden="true">view <span>→</span></span>
+                  <template class="detail" data-eyebrow="project 02" data-media="videos/projects/brain-surgery-simulator.mp4">
+                    <p class="detail-lead">A browser-based educational simulator of microsurgical aneurysm clipping, seen through an operating microscope.</p>
+                    <p>It walks through clipping a right internal carotid–posterior communicating artery (IC-PC) aneurysm via a pterional, transsylvian approach, in six steps that unlock one after another, with a mentor explaining each. Handle the dome too roughly and it can rupture; the vitals monitor reacts to blood loss and temporary occlusion, and a debrief at the end covers time, blood loss, occlusion and the clip result. Available in English and French.</p>
+                    <h4>highlights</h4>
+                    <ul class="project-points">
+                      <li>Ten instruments, including suction, bipolar, aneurysm clips, Doppler, ICG and an endoscope</li>
+                      <li>Procedurally generated anatomy, with models for bleeding, CSF, blood flow and clip evaluation</li>
+                      <li>A “watch demo” mode that performs the whole procedure step by step</li>
+                      <li>Tests that check key structures stay visible and a clean clip is still achievable after tuning</li>
+                    </ul>
+                    <p class="detail-note">For education and demonstration only; not a clinical training device.</p>
+                    <h4>built with</h4>
+                    <ul class="chips"><li>TypeScript</li><li>three.js</li><li>Vite</li><li>Web Audio</li><li>Vitest</li></ul>
+                    <p class="detail-links">
+                      <a href="https://github.com/alishaaaaaaaa/brain-surgery-simulator" target="_blank" rel="noopener">code <span aria-hidden="true">↗</span></a>
+                    </p>
+                  </template>
                 </article>
               </li>
 
               <li>
-                <article class="project rise" data-preview="videos/projects/echocases.mp4">
+                <article class="project rise">
                   <span class="project-num" aria-hidden="true">03</span>
                   <div class="project-body">
-                    <h3 class="project-name">EchoCases</h3>
+                    <h3 class="project-name"><button class="project-open" type="button" aria-haspopup="dialog">EchoCases</button></h3>
                     <p class="project-desc">An AI-powered cold case platform that surfaces hidden connections between unsolved cases across time and place.</p>
+                    <ul class="chips"><li>Python</li><li>Flask</li><li>React</li><li>scikit-learn</li></ul>
+                  </div>
+                  <span class="project-more" aria-hidden="true">view <span>→</span></span>
+                  <template class="detail" data-eyebrow="project 03" data-media="videos/projects/echocases.mp4">
+                    <p class="detail-lead">An AI-powered cold case intelligence platform that surfaces hidden connections across time and geography.</p>
+                    <p>The clearance rate for violent crime in North America is only about 50%, and often lower in minority and underserved communities. EchoCases gives community advocates, independent researchers and under-resourced agencies the kind of pattern-recognition tools that well-funded departments take for granted.</p>
+                    <h4>highlights</h4>
                     <ul class="project-points">
-                      <li>Semantic matching with sentence embeddings finds cases with similar narratives across jurisdictions</li>
+                      <li>Semantic matching with sentence embeddings finds cases with similar narratives and MOs, even across jurisdictions and different wording</li>
                       <li>HDBSCAN clustering flags possible crime series that were never linked</li>
-                      <li>Interactive Mapbox map with an animated timeline and Gemini-powered analysis</li>
+                      <li>A Mapbox map with filters and an animated timeline that reveals escalation patterns</li>
+                      <li>Gemini-powered analysis: behavioural patterns, geographic profiling and next steps</li>
                     </ul>
-                    <ul class="chips"><li>Python</li><li>Flask</li><li>React</li><li>scikit-learn</li><li>Mapbox</li><li>Gemini</li></ul>
-                  </div>
-                  <div class="project-links">
-                    <a href="https://youtu.be/KhEZa9hirzo" target="_blank" rel="noopener">demo <span aria-hidden="true">↗</span></a>
-                    <a href="https://github.com/alishaaaaaaaa/EchoCases" target="_blank" rel="noopener">code <span aria-hidden="true">↗</span></a>
-                  </div>
+                    <h4>built with</h4>
+                    <ul class="chips"><li>Python</li><li>Flask</li><li>React</li><li>Sentence-Transformers</li><li>scikit-learn</li><li>Mapbox</li><li>Gemini</li></ul>
+                    <p class="detail-links">
+                      <a href="https://youtu.be/KhEZa9hirzo" target="_blank" rel="noopener">demo video <span aria-hidden="true">↗</span></a>
+                      <a href="https://github.com/alishaaaaaaaa/EchoCases" target="_blank" rel="noopener">code <span aria-hidden="true">↗</span></a>
+                    </p>
+                  </template>
                 </article>
               </li>
             </ol>
@@ -235,40 +264,56 @@
               <p class="lead">I love getting involved and meeting people who care about the same things I do.</p>
             </div>
 
-            <!-- ✏️ PICTURES: put photos in images/community/ and add them to an
-                 item's <article> as a comma-separated list, e.g.
-                 data-preview="images/community/deltahacks-1.jpg, images/community/deltahacks-2.jpg"
-                 Same behaviour as projects: a cycling card on hover, a swipe strip on phones. -->
+            <!-- ✏️ PHOTO STRIP: two rows that drift sideways and speed up as you scroll.
+                 Add or swap <img> tags in either row (photos in images/community/). -->
+            <div class="marquee rise" aria-hidden="true">
+              <div class="marquee-row" data-direction="-1"><img src="images/community/deltahacks-1.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/islamic-relief-1.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/formula-electric-1.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/deltahacks-2.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/islamic-relief-2.jpg" alt="" loading="lazy" decoding="async"></div>
+              <div class="marquee-row" data-direction="1"><img src="images/community/islamic-relief-3.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/deltahacks-3.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/formula-electric-4.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/deltahacks-4.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/deltahacks-5.jpg" alt="" loading="lazy" decoding="async"></div>
+            </div>
+
+            <!-- ✏️ Same as projects: the <template class="detail"> in each row is its popup. -->
             <ol class="project-list">
               <li>
-                <article class="project community-item rise" data-preview="images/community/deltahacks-1.jpg, images/community/deltahacks-2.jpg, images/community/deltahacks-3.jpg, images/community/deltahacks-4.jpg, images/community/deltahacks-5.jpg">
+                <article class="project community-item rise">
                   <div class="project-body">
-                    <h3 class="project-name">DeltaHacks</h3>
+                    <h3 class="project-name"><button class="project-open" type="button" aria-haspopup="dialog">DeltaHacks</button></h3>
                     <p class="project-role">Events Executive</p>
-                    <p class="project-desc">One of the biggest hackathons in Canada. For the past two years I've planned and led events for the club, including events at the main hackathon.</p>
+                    <p class="project-desc">Planning and leading events for one of the biggest hackathons in Canada.</p>
                   </div>
                   <div class="stat"><span class="stat-num">700+</span><span class="stat-label">hackers at the main event</span></div>
+                  <template class="detail" data-eyebrow="events executive" data-media="images/community/deltahacks-1.jpg, images/community/deltahacks-2.jpg, images/community/deltahacks-3.jpg, images/community/deltahacks-4.jpg, images/community/deltahacks-5.jpg">
+                    <p class="detail-lead">One of the biggest hackathons in Canada: McMaster's hackathon for change.</p>
+                    <p>For the past two years I've planned and led events for the club, including events at the main hackathon, which brings together more than 700 hackers.</p>
+                  </template>
                 </article>
               </li>
 
               <li>
-                <article class="project community-item rise" data-preview="images/community/islamic-relief-1.jpg, images/community/islamic-relief-2.jpg, images/community/islamic-relief-3.jpg">
+                <article class="project community-item rise">
                   <div class="project-body">
-                    <h3 class="project-name">McMaster Islamic Relief</h3>
+                    <h3 class="project-name"><button class="project-open" type="button" aria-haspopup="dialog">McMaster Islamic Relief</button></h3>
                     <p class="project-role">Marketing Director</p>
-                    <p class="project-desc">A student-run charity where we work together for a good cause. As Marketing Director, I lead how we tell those stories.</p>
+                    <p class="project-desc">A student-run charity where we work together for a good cause.</p>
                   </div>
-                  <div class="stat"><span class="stat-num">$100k+</span><span class="stat-label">raised for charity, more than any other North American university</span></div>
+                  <div class="stat"><span class="stat-num">$100k+</span><span class="stat-label">raised for charity</span></div>
+                  <template class="detail" data-eyebrow="marketing director" data-media="images/community/islamic-relief-1.jpg, images/community/islamic-relief-2.jpg, images/community/islamic-relief-3.jpg">
+                    <p class="detail-lead">A student-run charity where we work together for a good cause.</p>
+                    <p>Together we've raised over $100k for charity, more than any other North American university. As Marketing Director, I lead how we tell those stories.</p>
+                  </template>
                 </article>
               </li>
 
               <li>
-                <article class="project community-item rise" data-preview="images/community/formula-electric-1.jpg, images/community/formula-electric-2.jpg, images/community/formula-electric-3.jpg, images/community/formula-electric-4.jpg">
+                <article class="project community-item rise">
                   <div class="project-body">
-                    <h3 class="project-name">McMaster Formula Electric</h3>
+                    <h3 class="project-name"><button class="project-open" type="button" aria-haspopup="dialog">McMaster Formula Electric</button></h3>
                     <p class="project-role">Human Factors &amp; Ergonomics</p>
-                    <p class="project-desc">On the human factors and ergonomics team, working on the driver dashboard and cockpit ergonomics with other subteams, from CAD models to testing in the car.</p>
+                    <p class="project-desc">Designing the driver's side of an electric race car, from CAD to testing.</p>
                   </div>
+                  <template class="detail" data-eyebrow="human factors &amp; ergonomics" data-media="images/community/formula-electric-1.jpg, images/community/formula-electric-2.jpg, images/community/formula-electric-3.jpg, images/community/formula-electric-4.jpg">
+                    <p class="detail-lead">Designing the driver's side of an electric race car.</p>
+                    <p>On the human factors and ergonomics team, I worked on the driver dashboard and cockpit ergonomics alongside the other subteams, from CAD models to testing in the car.</p>
+                  </template>
                 </article>
               </li>
             </ol>
@@ -286,44 +331,16 @@
 
             <div class="intro rise">
               <p class="lead">Capturing the beauty of the world, one frame at a time.</p>
-              <p>Short films from walks around campus, the lakeshore and the city. Open any of them to watch with sound.</p>
+              <p>Little moments from walks around campus, the lakeshore and the city.</p>
             </div>
 
-            <!-- ✏️ ADDING A FILM: for a film called NAME, put these in videos/films/
-                   NAME.mp4            the full film, with sound (opens on click)
-                   NAME-preview.mp4    a short silent loop for the tile (+ NAME-preview.webm)
-                   NAME.jpg            a still shown before the preview plays
-                 then copy a <button class="film"> below into the right row:
-                 landscape films (--w: 16; --h: 9) in the first row, vertical
-                 reels (--w: 9; --h: 16) in the "is-reels" row. Each row lines
-                 its films up at the same height across the full width. -->
-            <div class="films rise">
-              <div class="film-row">
-                <button class="film" type="button" data-film="videos/films/toronto" style="--w: 16; --h: 9">
-                  <img class="film-poster" src="videos/films/toronto.jpg" alt="" loading="lazy">
-                  <span class="film-meta"><span class="film-title">the beauty of toronto</span><span class="film-time">0:13</span></span>
-                </button>
-                <button class="film" type="button" data-film="videos/films/sundown" style="--w: 16; --h: 9">
-                  <img class="film-poster" src="videos/films/sundown.jpg" alt="" loading="lazy">
-                  <span class="film-meta"><span class="film-title">sundown</span><span class="film-time">0:10</span></span>
-                </button>
-              </div>
-              <!-- vertical reels: on phones this row becomes a sideways swipe strip -->
-              <div class="film-row is-reels">
-                <button class="film" type="button" data-film="videos/films/green-and-gold" style="--w: 9; --h: 16">
-                  <img class="film-poster" src="videos/films/green-and-gold.jpg" alt="" loading="lazy">
-                  <span class="film-meta"><span class="film-title">green &amp; gold</span><span class="film-time">0:18</span></span>
-                </button>
-                <button class="film" type="button" data-film="videos/films/lakeshore" style="--w: 9; --h: 16">
-                  <img class="film-poster" src="videos/films/lakeshore.jpg" alt="" loading="lazy">
-                  <span class="film-meta"><span class="film-title">lakeshore</span><span class="film-time">0:15</span></span>
-                </button>
-                <button class="film" type="button" data-film="videos/films/under-the-trees" style="--w: 9; --h: 16">
-                  <img class="film-poster" src="videos/films/under-the-trees.jpg" alt="" loading="lazy">
-                  <span class="film-meta"><span class="film-title">under the trees</span><span class="film-time">0:21</span></span>
-                </button>
-              </div>
-            </div>
+            <!-- ✏️ THE SHOWREEL plays these clips in order, silently, one after another.
+                 For a clip called NAME, put in videos/films/:
+                   NAME.mp4       the clip (no sound needed)
+                   NAME.jpg       its first frame
+                   NAME-blur.jpg  a tiny blurred still, shown behind clips that don't fill the frame
+                 then add  videos/films/NAME  to the list below. -->
+            <div class="reel rise" data-clips="videos/films/toronto, videos/films/green-and-gold, videos/films/sundown, videos/films/lakeshore, videos/films/under-the-trees"></div>
             <p class="page-footer">weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo</a></p>
           </div>
         </div>

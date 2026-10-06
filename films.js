@@ -1,169 +1,153 @@
 /* =====================================================================
    alisha's portfolio · films.js
 
-   The videography page.
-   - Tiles: a silent preview loop plays while you hover a film (computer),
-     or while it's the film most in view (phone). Otherwise the still shows.
-   - Clicking a film opens it full size, with sound, in a player that sits
-     over the page. ← / → (or the arrow buttons) move between films;
-     Esc, the × or clicking outside closes it.
-   Previews load only when needed and full films only when opened, so the
-   page stays light. Styles live in style.css under "videography".
+   The videography showreel: one frame that plays the clips listed in
+   data-clips one after another, silently, with a soft crossfade.
+   - Thin bars along the top show which clip you're on and its progress.
+   - Click/tap the right side for the next clip, the left side to go back;
+     ← / → work too when the reel is focused.
+   - Clips that don't match the frame's shape (a vertical clip in a wide
+     frame, say) sit in the middle over a blurred still of themselves.
+   Only the playing clip and the next one load. It only plays while the
+   videography page is open and the reel is on screen.
+   Styles live in style.css under "showreel".
    ===================================================================== */
 (() => {
   'use strict';
 
-  const films = Array.from(document.querySelectorAll('.film[data-film]'));
-  if (!films.length) return;
+  const reel = document.querySelector('.reel[data-clips]');
+  if (!reel) return;
+  const clips = reel.dataset.clips.split(',').map((s) => s.trim()).filter(Boolean);
+  if (!clips.length) return;
 
-  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const stage = document.getElementById('viewport') || document.body;
-  const titleOf = (film) => {
-    const t = film.querySelector('.film-title');
-    return t ? t.textContent.trim() : '';
-  };
 
-  function addSources(video, base, suffix) {
-    // mp4 first (plays almost everywhere); webm if the browser can't do mp4
-    [[`${base}${suffix}.mp4`, 'video/mp4'], [`${base}${suffix}.webm`, 'video/webm']].forEach(([src, type]) => {
-      const source = document.createElement('source');
-      source.src = src;
-      source.type = type;
-      video.appendChild(source);
-    });
-  }
+  reel.setAttribute('role', 'region');
+  reel.setAttribute('aria-roledescription', 'showreel');
+  reel.setAttribute('aria-label', 'Showreel of short films. Click the right side for the next clip, the left side for the previous one.');
+  reel.tabIndex = 0;
 
-  /* ---------------- tile previews ---------------- */
-  function previewFor(film) {
-    let video = film.querySelector('.film-preview');
-    if (!video) {
-      video = document.createElement('video');
-      video.className = 'film-preview';
-      video.muted = true;
-      video.loop = true;
-      video.playsInline = true;
-      video.preload = 'none';
-      video.setAttribute('aria-hidden', 'true');
-      addSources(video, film.dataset.film, '-preview');
-      video.addEventListener('playing', () => film.classList.add('is-playing'));
-      film.insertBefore(video, film.querySelector('.film-meta'));
-    }
+  // layers: blurred backdrop, two video layers (A/B) for crossfading, progress bars
+  const backdrop = document.createElement('div');
+  backdrop.className = 'reel-backdrop';
+  const layers = [0, 1].map(() => {
+    const video = document.createElement('video');
+    video.className = 'reel-video';
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+    video.setAttribute('aria-hidden', 'true');
+    reel.appendChild(video);
     return video;
-  }
-  function startPreview(film) {
-    if (reducedMotion) return;
-    previewFor(film).play().catch(() => {});
-  }
-  function stopPreview(film) {
-    const video = film.querySelector('.film-preview');
-    if (video) video.pause();
-    film.classList.remove('is-playing');
-  }
+  });
+  reel.prepend(backdrop);
+  const bars = document.createElement('div');
+  bars.className = 'reel-bars';
+  clips.forEach(() => {
+    const bar = document.createElement('span');
+    bar.appendChild(document.createElement('i'));
+    bars.appendChild(bar);
+  });
+  reel.appendChild(bars);
 
-  if (finePointer) {
-    films.forEach((film) => {
-      film.addEventListener('pointerenter', () => startPreview(film));
-      film.addEventListener('pointerleave', () => stopPreview(film));
-      film.addEventListener('focus', () => startPreview(film));
-      film.addEventListener('blur', () => stopPreview(film));
-    });
-  } else if ('IntersectionObserver' in window) {
-    // phones: only the film most in view plays, so it never gets heavy
-    const ratios = new Map();
-    let current = null;
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(({ target, intersectionRatio }) => ratios.set(target, intersectionRatio));
-      let best = null;
-      let bestRatio = 0.55;
-      ratios.forEach((ratio, film) => { if (ratio > bestRatio) { best = film; bestRatio = ratio; } });
-      if (best !== current) {
-        if (current) stopPreview(current);
-        current = best;
-        if (current) startPreview(current);
-      }
-    }, { threshold: [0, 0.25, 0.55, 0.75, 1] });
-    films.forEach((film) => observer.observe(film));
-  }
-
-  /* ---------------- full-size player ---------------- */
-  const box = document.createElement('div');
-  box.className = 'film-player';
-  box.hidden = true;
-  box.setAttribute('role', 'dialog');
-  box.setAttribute('aria-modal', 'true');
-  box.setAttribute('aria-label', 'Film player');
-  box.innerHTML = `
-    <button class="film-player-close" type="button" aria-label="Close">×</button>
-    <button class="film-player-nav is-prev" type="button" aria-label="Previous film">‹</button>
-    <figure class="film-player-frame">
-      <video controls playsinline></video>
-      <figcaption></figcaption>
-    </figure>
-    <button class="film-player-nav is-next" type="button" aria-label="Next film">›</button>`;
-  stage.appendChild(box);   // inside the stage so the custom cursor stays on top
-
-  const player = box.querySelector('video');
-  const caption = box.querySelector('figcaption');
   let index = -1;
-  let opener = null;
+  let front = 0;           // which layer is showing
+  let active = false;      // page open + reel on screen
+
+  function setSource(video, base) {
+    if (video.dataset.base === base) return;
+    video.dataset.base = base;
+    video.innerHTML = '';
+    video.poster = `${base}.jpg`;
+    [[`${base}.mp4`, 'video/mp4'], [`${base}.webm`, 'video/webm']].forEach(([src, type]) => {
+      const s = document.createElement('source');
+      s.src = src;
+      s.type = type;
+      video.appendChild(s);
+    });
+    video.load();
+  }
+
+  // a clip "fits" if its shape matches the frame's; otherwise it's centred over a blur
+  function fit(video) {
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    if (!vw || !vh) return;
+    const frameWide = reel.clientWidth >= reel.clientHeight;
+    const clipWide = vw >= vh;
+    video.classList.toggle('is-contained', frameWide !== clipWide);
+  }
+  layers.forEach((video) => video.addEventListener('loadedmetadata', () => fit(video)));
+  window.addEventListener('resize', () => layers.forEach(fit));
 
   function show(i) {
-    index = (i + films.length) % films.length;
-    const film = films[index];
-    player.pause();
-    player.innerHTML = '';
-    player.removeAttribute('src');
-    player.poster = `${film.dataset.film}.jpg`;
-    addSources(player, film.dataset.film, '');
-    player.load();
-    player.play().catch(() => {});
-    const time = film.querySelector('.film-time');
-    caption.textContent = titleOf(film) + (time ? `  ·  ${time.textContent.trim()}` : '');
-    box.classList.toggle('is-vertical', Number(getComputedStyle(film).getPropertyValue('--h')) > Number(getComputedStyle(film).getPropertyValue('--w')));
-  }
+    index = (i + clips.length) % clips.length;
+    const base = clips[index];
+    const next = layers[1 - front];
+    const prev = layers[front];
+    setSource(next, base);
+    next.currentTime = 0;
+    fit(next);
+    backdrop.style.backgroundImage = `url("${base}-blur.jpg")`;
+    next.classList.add('is-front');
+    prev.classList.remove('is-front');
+    prev.pause();
+    front = 1 - front;
+    if (active && !reducedMotion) next.play().catch(() => {});
 
-  function open(i) {
-    opener = document.activeElement;
-    films.forEach(stopPreview);
-    box.hidden = false;
-    requestAnimationFrame(() => box.classList.add('is-open'));
-    show(i);
-    box.querySelector('.film-player-close').focus({ preventScroll: true });
-  }
-
-  function close() {
-    if (box.hidden) return;
-    player.pause();
-    box.classList.remove('is-open');
+    Array.from(bars.children).forEach((bar, k) => {
+      bar.classList.toggle('is-done', k < index);
+      bar.classList.toggle('is-current', k === index);
+      bar.firstChild.style.transform = k < index ? 'scaleX(1)' : 'scaleX(0)';
+    });
+    // quietly get the following clip ready on the hidden layer
     window.setTimeout(() => {
-      box.hidden = true;
-      player.innerHTML = '';
-      player.removeAttribute('src');
-      player.load();                       // stop downloading
-    }, 250);
-    if (opener && opener.focus) opener.focus({ preventScroll: true });
+      if (layers[1 - front] === prev) setSource(prev, clips[(index + 1) % clips.length]);
+    }, 900);
   }
 
-  films.forEach((film, i) => film.addEventListener('click', () => open(i)));
-  box.querySelector('.film-player-close').addEventListener('click', close);
-  box.querySelector('.is-prev').addEventListener('click', () => show(index - 1));
-  box.querySelector('.is-next').addEventListener('click', () => show(index + 1));
-  box.addEventListener('click', (event) => { if (event.target === box) close(); });
+  // progress bar for the playing clip; move on when it ends
+  layers.forEach((video) => {
+    video.addEventListener('timeupdate', () => {
+      if (video !== layers[front] || !video.duration) return;
+      bars.children[index].firstChild.style.transform = `scaleX(${video.currentTime / video.duration})`;
+    });
+    video.addEventListener('ended', () => { if (video === layers[front]) show(index + 1); });
+  });
 
-  // Capture phase, so Esc closes the player instead of the whole page
-  document.addEventListener('keydown', (event) => {
-    if (box.hidden) return;
-    if (event.key === 'Escape') { event.stopPropagation(); event.preventDefault(); close(); }
-    else if (event.key === 'ArrowRight') { event.stopPropagation(); show(index + 1); }
-    else if (event.key === 'ArrowLeft') { event.stopPropagation(); show(index - 1); }
-  }, true);
+  // click/tap: right 2/3 → next, left 1/3 → back
+  reel.addEventListener('click', (event) => {
+    const rect = reel.getBoundingClientRect();
+    show(event.clientX - rect.left < rect.width / 3 ? index - 1 : index + 1);
+  });
+  reel.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') { event.preventDefault(); event.stopPropagation(); show(index + 1); }
+    else if (event.key === 'ArrowLeft') { event.preventDefault(); event.stopPropagation(); show(index - 1); }
+  });
 
-  // close it if the page itself closes (e.g. the browser Back button)
-  const page = films[0].closest('.page');
+  function setActive(on) {
+    if (on === active) return;
+    active = on;
+    const video = layers[front];
+    if (on && !reducedMotion) video.play().catch(() => {});
+    else video.pause();
+  }
+
+  const page = reel.closest('.page');
+  let onScreen = true;
+  const sync = () => {
+    const pageOpen = !page || (page.classList.contains('is-active') && page.closest('.pages.is-open'));
+    if (pageOpen && index < 0) show(0);
+    setActive(Boolean(pageOpen) && onScreen);
+  };
   if (page) {
-    new MutationObserver(() => {
-      if (!page.classList.contains('is-active')) { close(); films.forEach(stopPreview); }
-    }).observe(page, { attributes: true, attributeFilter: ['class'] });
+    new MutationObserver(sync).observe(page, { attributes: true, attributeFilter: ['class'] });
+    const pages = page.closest('.pages');
+    if (pages) new MutationObserver(sync).observe(pages, { attributes: true, attributeFilter: ['class'] });
   }
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; sync(); }, { threshold: 0.25 }).observe(reel);
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) setActive(false); else sync(); });
+  sync();
 })();

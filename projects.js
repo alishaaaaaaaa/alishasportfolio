@@ -1,316 +1,322 @@
 /* =====================================================================
    alisha's portfolio · projects.js
 
-   Photo / clip carousels for projects, community items and the about photo.
+   1. DETAIL POPUPS for projects and community.
+      Each row's <button class="project-open"> opens a popup built from the
+      <template class="detail"> inside that row:
+        data-media    photos/clips for the popup's carousel, comma-separated
+        data-eyebrow  the small label above the title
+      Clips (.mp4) play silently on loop while their slide is showing; a
+      NAME.webm next to NAME.mp4 is used if a browser can't play mp4, and
+      NAME.jpg (if present) shows before it starts.
+      Close with Esc, the ×, or by clicking outside. ← / → move the carousel.
 
-   PROJECTS + COMMUNITY: add a comma-separated list to an <article class="project">
-     data-preview="videos/projects/roomify.mp4, images/projects/roomify-1.jpg"
-   - On a computer: hovering the row shows a small card beside the cursor
-     that steps through the list by itself.
-   - On a phone: a swipeable strip at the top of the row.
+   2. ABOUT PHOTO: list photos in the .about-photo's data-photos
+      (comma-separated). Two or more slowly crossfade; click to advance.
 
-   ABOUT PHOTO: add a comma-separated list to the .about-photo element
-     data-photos="images/about/1.jpg, images/about/2.jpg, images/about/3.jpg"
-   It crossfades slowly; click/tap it or use the dots to move through.
+   3. PHOTO STRIP on the community page: rows of photos that drift
+      sideways and race faster while you scroll. Tune DRIFT / BOOST below.
 
-   Mix photos (.jpg .png .webp) and clips (.mp4) freely. For a clip
-   NAME.mp4, a NAME.webm next to it is used as a fallback for browsers that
-   can't play mp4, and NAME.jpg (if present) shows before it starts.
-   Nothing loads until it's needed, so carousels don't slow the site down.
-   Styles live in style.css under "carousels".
+   Styles live in style.css under "detail popup" and "carousels".
    ===================================================================== */
 (() => {
   'use strict';
 
-  const SETTINGS = {
-    hoverPhotoMs: 1800,   // how long each photo shows in a hover card
-    hoverClipMs: 4500,    // how long each clip plays in a hover card
-    aboutMs: 4500,        // about-photo crossfade timing
-  };
-
-  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const stage = document.getElementById('viewport') || document.body;
   const isVideo = (src) => /\.(mp4|webm|mov)$/i.test(src);
   const parse = (list) => (list || '').split(',').map((s) => s.trim()).filter(Boolean);
 
-  function makeMedia(src, alt, eager) {
-    if (isVideo(src)) {
-      const video = document.createElement('video');
-      video.muted = true;
-      video.loop = true;
-      video.playsInline = true;
-      video.preload = 'none';
-      video.setAttribute('aria-hidden', 'true');
-      video.dataset.src = src;                 // sources are only added when first shown
-      return video;
-    }
-    const img = document.createElement('img');
-    img.alt = alt || '';
-    img.decoding = 'async';
-    if (eager) img.src = src;
-    else img.dataset.src = src;
-    return img;
-  }
-  function load(el) {
-    const src = el.dataset.src;
-    if (!src || el.dataset.loaded) return;
-    el.dataset.loaded = '1';
-    if (el.tagName !== 'VIDEO') { el.src = src; return; }
+  function makeVideo(src) {
+    const video = document.createElement('video');
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.setAttribute('aria-hidden', 'true');
     const base = src.replace(/\.(mp4|webm|mov)$/i, '');
-    el.poster = `${base}.jpg`;
-    // mp4 first (plays almost everywhere); webm if the browser can't do mp4
+    video.poster = `${base}.jpg`;
     [[`${base}.mp4`, 'video/mp4'], [`${base}.webm`, 'video/webm']].forEach(([url, type]) => {
       const source = document.createElement('source');
       source.src = url;
       source.type = type;
-      el.appendChild(source);
+      video.appendChild(source);
     });
-    el.load();
-  }
-  const play = (el) => { if (el.tagName === 'VIDEO' && !reducedMotion) { load(el); el.play().catch(() => {}); } };
-  const pause = (el) => { if (el.tagName === 'VIDEO') el.pause(); };
-
-  function makeDots(count, onPick) {
-    const dots = document.createElement('div');
-    dots.className = 'deck-dots';
-    for (let i = 0; i < count; i += 1) {
-      const dot = document.createElement(onPick ? 'button' : 'span');
-      dot.className = 'deck-dot';
-      if (onPick) {
-        dot.type = 'button';
-        dot.setAttribute('aria-label', `Show photo ${i + 1} of ${count}`);
-        dot.addEventListener('click', (event) => { event.stopPropagation(); onPick(i); });
-      }
-      dots.appendChild(dot);
-    }
-    return dots;
+    return video;
   }
 
-  /* A crossfading deck: slides stacked on top of each other. */
-  function makeDeck(srcs, alt, { clickableDots = false } = {}) {
-    const el = document.createElement('div');
-    el.className = 'deck';
-    const slides = srcs.map((src, i) => {
-      const slide = document.createElement('div');
-      slide.className = 'deck-slide';
-      slide.appendChild(makeMedia(src, srcs.length > 1 ? `${alt} (${i + 1} of ${srcs.length})` : alt));
-      el.appendChild(slide);
-      return slide;
-    });
-    let index = -1;
-    let timer = 0;
-    const dots = srcs.length > 1 ? makeDots(srcs.length, clickableDots ? (i) => { show(i); restart(); } : null) : null;
-    if (dots) el.appendChild(dots);
+  /* ================= 1. detail popups ================= */
+  const openers = Array.from(document.querySelectorAll('.project-open'));
 
-    function show(i) {
-      if (i === index) return;
-      if (index >= 0) {
-        slides[index].classList.remove('is-current');
-        pause(slides[index].firstChild);
-        if (dots) dots.children[index].classList.remove('is-current');
-      }
-      index = (i + slides.length) % slides.length;
-      const media = slides[index].firstChild;
-      load(media);
-      play(media);
-      slides[index].classList.add('is-current');
-      if (dots) dots.children[index].classList.add('is-current');
-      // warm up the next one so the crossfade never shows a blank
-      const next = slides[(index + 1) % slides.length].firstChild;
-      if (next.tagName === 'IMG') load(next);
-    }
+  if (openers.length) {
+    const modal = document.createElement('div');
+    modal.className = 'detail-modal';
+    modal.hidden = true;
+    modal.innerHTML = `
+      <div class="detail-card" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+        <button class="detail-close" type="button" aria-label="Close">×</button>
+        <div class="detail-media">
+          <div class="detail-track"></div>
+          <button class="detail-arrow is-prev" type="button" aria-label="Previous">‹</button>
+          <button class="detail-arrow is-next" type="button" aria-label="Next">›</button>
+          <div class="detail-dots" aria-hidden="true"></div>
+        </div>
+        <div class="detail-text">
+          <p class="detail-eyebrow"></p>
+          <h3 class="detail-title" id="detail-title"></h3>
+          <div class="detail-body"></div>
+        </div>
+      </div>`;
+    stage.appendChild(modal);   // inside the stage so the custom cursor stays on top
 
-    let durations = null;
-    function tick() {
-      show(index + 1);
-      timer = window.setTimeout(tick, durations(slides[index].firstChild));
-    }
-    function start(getDuration) {
-      durations = getDuration;
-      stop();
-      if (index < 0) show(0);
-      else play(slides[index].firstChild);
-      if (slides.length > 1 && !reducedMotion) {
-        timer = window.setTimeout(tick, durations(slides[index].firstChild));
-      }
-    }
-    function stop() {
-      window.clearTimeout(timer);
-      timer = 0;
-    }
-    function restart() { if (durations) start(durations); }
-    function pauseAll() { stop(); if (index >= 0) pause(slides[index].firstChild); }
+    const card = modal.querySelector('.detail-card');
+    const media = modal.querySelector('.detail-media');
+    const track = modal.querySelector('.detail-track');
+    const dots = modal.querySelector('.detail-dots');
+    const eyebrow = modal.querySelector('.detail-eyebrow');
+    const title = modal.querySelector('.detail-title');
+    const body = modal.querySelector('.detail-body');
+    const textCol = modal.querySelector('.detail-text');
+    let slides = [];
+    let current = 0;
+    let opener = null;
 
-    return { el, show, start, stop, pauseAll, next: () => { show(index + 1); restart(); }, count: slides.length };
-  }
-
-  /* A swipeable strip (phones): slides side by side with scroll-snap. */
-  function makeStrip(srcs, alt) {
-    const el = document.createElement('div');
-    el.className = 'strip-wrap';
-    const strip = document.createElement('div');
-    strip.className = 'strip';
-    const media = srcs.map((src, i) => {
-      const cell = document.createElement('div');
-      cell.className = 'strip-cell';
-      const m = makeMedia(src, srcs.length > 1 ? `${alt} (${i + 1} of ${srcs.length})` : alt);
-      if (m.tagName === 'IMG') m.loading = 'lazy';
-      cell.appendChild(m);
-      strip.appendChild(cell);
-      return m;
-    });
-    el.appendChild(strip);
-    let dots = null;
-    if (srcs.length > 1) {
-      dots = makeDots(srcs.length, null);
-      el.appendChild(dots);
-      strip.addEventListener('scroll', () => {
-        const i = Math.round(strip.scrollLeft / strip.clientWidth);
-        Array.from(dots.children).forEach((d, k) => d.classList.toggle('is-current', k === i));
-      }, { passive: true });
-      dots.children[0].classList.add('is-current');
-    }
-    return { el, media };
-  }
-
-  /* ================= projects + community ================= */
-  const rows = Array.from(document.querySelectorAll('.project[data-preview]'))
-    .filter((row) => parse(row.dataset.preview).length);
-  const nameOf = (row) => {
-    const name = row.querySelector('.project-name');
-    return name ? name.textContent.trim() : '';
-  };
-
-  if (rows.length && !finePointer) {
-    // phones / tablets: swipeable strip at the top of each row
-    const observer = 'IntersectionObserver' in window && !reducedMotion
-      ? new IntersectionObserver((entries) => {
-          entries.forEach(({ target, isIntersecting }) => {
-            if (isIntersecting) play(target); else pause(target);
-          });
-        }, { threshold: 0.6 })
-      : null;
-    // images: load each as it nears the screen
-    const imgObserver = 'IntersectionObserver' in window
-      ? new IntersectionObserver((entries, obs) => {
-          entries.forEach(({ target, isIntersecting }) => {
-            if (isIntersecting) { load(target); obs.unobserve(target); }
-          });
-        }, { rootMargin: '300px' })
-      : null;
-
-    rows.forEach((row) => {
-      const box = document.createElement('div');
-      box.className = 'project-inline-media';
-      const { el, media } = makeStrip(parse(row.dataset.preview), nameOf(row));
-      box.appendChild(el);
-      row.prepend(box);
-      media.forEach((m) => {
-        if (m.tagName === 'VIDEO') {
-          if (reducedMotion) { m.controls = true; load(m); m.preload = 'metadata'; }
-          else if (observer) observer.observe(m);
-        } else if (imgObserver) imgObserver.observe(m);
-        else load(m);
+    function setCurrent(i) {
+      current = Math.max(0, Math.min(slides.length - 1, i));
+      slides.forEach((slide, k) => {
+        const video = slide.querySelector('video');
+        if (video) {
+          if (k === current && !reducedMotion) video.play().catch(() => {});
+          else video.pause();
+        }
       });
+      Array.from(dots.children).forEach((dot, k) => dot.classList.toggle('is-current', k === current));
+      media.classList.toggle('at-start', current === 0);
+      media.classList.toggle('at-end', current === slides.length - 1);
+    }
+    function goTo(i) {
+      const target = Math.max(0, Math.min(slides.length - 1, i));
+      track.scrollTo({ left: target * track.clientWidth, behavior: reducedMotion ? 'auto' : 'smooth' });
+      setCurrent(target);
+    }
+    // keep the current slide in sync when swiping
+    let scrollTimer = 0;
+    track.addEventListener('scroll', () => {
+      window.clearTimeout(scrollTimer);
+      scrollTimer = window.setTimeout(() => setCurrent(Math.round(track.scrollLeft / track.clientWidth)), 80);
+    }, { passive: true });
+
+    modal.querySelector('.is-prev').addEventListener('click', () => goTo(current - 1));
+    modal.querySelector('.is-next').addEventListener('click', () => goTo(current + 1));
+
+    function open(row) {
+      const tpl = row.querySelector('template.detail');
+      if (!tpl) return;
+      opener = document.activeElement;
+
+      eyebrow.textContent = tpl.dataset.eyebrow || '';
+      title.textContent = row.querySelector('.project-open').textContent.trim();
+      body.innerHTML = '';
+      body.appendChild(tpl.content.cloneNode(true));
+
+      track.innerHTML = '';
+      dots.innerHTML = '';
+      const list = parse(tpl.dataset.media);
+      slides = list.map((src, i) => {
+        const slide = document.createElement('div');
+        slide.className = 'detail-slide';
+        if (isVideo(src)) {
+          slide.appendChild(makeVideo(src));
+        } else {
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = `${title.textContent} photo ${i + 1} of ${list.length}`;
+          img.decoding = 'async';
+          if (i > 1) img.loading = 'lazy';
+          slide.appendChild(img);
+        }
+        track.appendChild(slide);
+        dots.appendChild(document.createElement('span'));
+        return slide;
+      });
+      modal.classList.toggle('has-media', slides.length > 0);
+      modal.classList.toggle('has-many', slides.length > 1);
+
+      modal.hidden = false;
+      track.scrollLeft = 0;
+      textCol.scrollTop = 0;
+      card.scrollTop = 0;
+      setCurrent(0);
+      requestAnimationFrame(() => modal.classList.add('is-open'));
+      modal.querySelector('.detail-close').focus({ preventScroll: true });
+    }
+
+    function close() {
+      if (modal.hidden) return;
+      slides.forEach((slide) => { const v = slide.querySelector('video'); if (v) v.pause(); });
+      modal.classList.remove('is-open');
+      window.setTimeout(() => {
+        modal.hidden = true;
+        track.innerHTML = '';          // stops any video downloads
+        slides = [];
+      }, 260);
+      if (opener && opener.focus) opener.focus({ preventScroll: true });
+    }
+
+    openers.forEach((button) => {
+      button.addEventListener('click', () => open(button.closest('.project')));
+    });
+    modal.querySelector('.detail-close').addEventListener('click', close);
+    modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
+
+    // Capture phase, so Esc closes the popup rather than the whole page
+    document.addEventListener('keydown', (event) => {
+      if (modal.hidden) return;
+      if (event.key === 'Escape') { event.stopPropagation(); event.preventDefault(); close(); }
+      else if (event.key === 'ArrowRight' && slides.length > 1) { event.stopPropagation(); goTo(current + 1); }
+      else if (event.key === 'ArrowLeft' && slides.length > 1) { event.stopPropagation(); goTo(current - 1); }
+      else if (event.key === 'Tab') {
+        // keep keyboard focus inside the popup
+        const focusable = Array.from(card.querySelectorAll('button, a[href]')).filter((el) => el.offsetParent !== null);
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    }, true);
+
+    // close it if the page underneath closes (e.g. the browser Back button)
+    document.querySelectorAll('.page').forEach((page) => {
+      new MutationObserver(() => {
+        if (!page.classList.contains('is-active') && !modal.hidden && opener && page.contains(opener)) close();
+      }).observe(page, { attributes: true, attributeFilter: ['class'] });
     });
   }
 
-  if (rows.length && finePointer) {
-    // computers: one floating card beside the cursor, one deck per row
-    const card = document.createElement('div');
-    card.className = 'project-preview';
-    card.setAttribute('aria-hidden', 'true');
-    (document.getElementById('pages') || document.body).appendChild(card);
+  /* ================= 3. photo strip (community) =================
+     Each .marquee-row drifts slowly in its data-direction. Scrolling the
+     page adds the scroll speed on top, so the photos race past while you
+     scroll and ease back to a drift when you stop. */
+  const marquee = document.querySelector('.marquee');
+  if (marquee && !reducedMotion) {
+    const DRIFT = 28;        // px per second when you're not scrolling
+    const BOOST = 0.9;       // how much scroll speed is added (1 = same speed as the page)
+    const rows = Array.from(marquee.querySelectorAll('.marquee-row')).map((el) => ({
+      el,
+      dir: Number(el.dataset.direction) || -1,
+      originals: Array.from(el.children),
+      setWidth: 0,
+      offset: 0,
+    }));
+    const scroller = marquee.closest('.page-scroll');
+    const page = marquee.closest('.page');
 
-    const decks = new Map();
-    const deckFor = (row) => {
-      if (!decks.has(row)) {
-        const deck = makeDeck(parse(row.dataset.preview), nameOf(row));
-        deck.el.hidden = true;
-        card.appendChild(deck.el);
-        decks.set(row, deck);
-      }
-      return decks.get(row);
-    };
-    const hoverDuration = (media) => (media.tagName === 'VIDEO' ? SETTINGS.hoverClipMs : SETTINGS.hoverPhotoMs);
+    // repeat each row's photos until it's comfortably wider than the screen,
+    // so it can loop forever without a gap
+    function measure() {
+      rows.forEach((row) => {
+        Array.from(row.el.children).slice(row.originals.length).forEach((n) => n.remove());
+        const gap = parseFloat(getComputedStyle(row.el).columnGap) || 0;
+        row.setWidth = row.originals.reduce((w, img) => w + img.getBoundingClientRect().width + gap, 0);
+        if (!row.setWidth) return;
+        const copies = Math.ceil((window.innerWidth * 2) / row.setWidth);
+        for (let c = 0; c < copies; c += 1) {
+          row.originals.forEach((img) => row.el.appendChild(img.cloneNode(true)));
+        }
+        row.offset = row.dir < 0 ? 0 : -row.setWidth;
+      });
+    }
 
-    const target = { x: 0, y: 0 };
-    const pos = { x: 0, y: 0 };
+    let lastScroll = scroller ? scroller.scrollTop : 0;
+    let speed = 0;           // smoothed scroll speed, px per second
+    let last = 0;
     let raf = 0;
-    let active = null;
 
-    function place() {
-      // beside the cursor, flipping to the left near the right edge
-      const w = card.offsetWidth;
-      const h = card.offsetHeight;
-      let x = target.x + 28;
-      if (x + w > window.innerWidth - 16) x = target.x - w - 28;
-      const y = Math.min(Math.max(target.y - h / 2, 16), window.innerHeight - h - 16);
-      return { x, y };
-    }
-    function frame() {
-      const goal = place();
-      pos.x += (goal.x - pos.x) * 0.2;
-      pos.y += (goal.y - pos.y) * 0.2;
-      card.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0)`;
-      raf = active ? requestAnimationFrame(frame) : 0;
-    }
-    function hide() {
-      if (active) decks.get(active).pauseAll();
-      active = null;
-      card.classList.remove('is-shown');
-    }
-
-    rows.forEach((row) => {
-      row.addEventListener('pointerenter', (event) => {
-        if (active && active !== row) decks.get(active).pauseAll();
-        active = row;
-        target.x = event.clientX;
-        target.y = event.clientY;
-        const goal = place();
-        pos.x = goal.x;
-        pos.y = goal.y;
-        const deck = deckFor(row);
-        decks.forEach((d) => { d.el.hidden = d !== deck; });
-        deck.start(hoverDuration);
-        card.classList.add('is-shown');
-        if (!raf) raf = requestAnimationFrame(frame);
+    function frame(now) {
+      const dt = Math.min(0.05, (now - (last || now)) / 1000);
+      last = now;
+      const top = scroller ? scroller.scrollTop : 0;
+      const raw = dt > 0 ? (top - lastScroll) / dt : 0;
+      lastScroll = top;
+      speed += (Math.abs(raw) - speed) * 0.12;      // ease in and out of the boost
+      rows.forEach((row) => {
+        if (!row.setWidth) return;
+        row.offset += row.dir * (DRIFT + speed * BOOST) * dt;
+        // wrap around seamlessly
+        if (row.offset <= -row.setWidth) row.offset += row.setWidth;
+        if (row.offset > 0) row.offset -= row.setWidth;
+        row.el.style.transform = `translate3d(${row.offset}px, 0, 0)`;
       });
-      row.addEventListener('pointermove', (event) => {
-        target.x = event.clientX;
-        target.y = event.clientY;
-      });
-      row.addEventListener('pointerleave', hide);
-    });
+      raf = requestAnimationFrame(frame);
+    }
 
-    document.addEventListener('click', (event) => {
-      if (event.target.closest('[data-back]')) hide();
-    });
+    // only run while the community page is open (no work in the background)
+    let measured = false;
+    const sync = () => {
+      const on = !page || page.classList.contains('is-active');
+      if (on && !raf) {
+        if (!measured) { measure(); measured = true; }
+        last = 0;
+        lastScroll = scroller ? scroller.scrollTop : 0;
+        raf = requestAnimationFrame(frame);
+      } else if (!on && raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
+    if (page) new MutationObserver(sync).observe(page, { attributes: true, attributeFilter: ['class'] });
+    window.addEventListener('resize', () => { if (measured) measure(); });
+    sync();
   }
 
-  /* ================= about photo ================= */
+  /* ================= 2. about photo ================= */
   const about = document.querySelector('.about-photo[data-photos]');
-  const aboutSrcs = about ? parse(about.dataset.photos) : [];
-  if (about && aboutSrcs.length) {
+  const photos = about ? parse(about.dataset.photos) : [];
+  if (about && photos.length) {
     about.classList.remove('is-empty');
+    const label = about.getAttribute('aria-label') || 'Photo of Alisha';
     about.removeAttribute('role');
-    const deck = makeDeck(aboutSrcs, about.getAttribute('aria-label') || 'Photo of Alisha', { clickableDots: true });
-    deck.el.querySelectorAll('img').forEach((img, i) => { if (i < 2) load(img); });
-    about.appendChild(deck.el);
     about.removeAttribute('aria-label');
 
-    if (deck.count > 1) {
+    const deck = document.createElement('div');
+    deck.className = 'deck';
+    const slides = photos.map((src, i) => {
+      const slide = document.createElement('div');
+      slide.className = 'deck-slide';
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = photos.length > 1 ? `${label} (${i + 1} of ${photos.length})` : label;
+      img.decoding = 'async';
+      slide.appendChild(img);
+      deck.appendChild(slide);
+      return slide;
+    });
+    about.appendChild(deck);
+
+    let index = 0;
+    slides[0].classList.add('is-current');
+    if (slides.length > 1) {
+      const dotRow = document.createElement('div');
+      dotRow.className = 'deck-dots';
+      photos.forEach(() => { const d = document.createElement('span'); d.className = 'deck-dot'; dotRow.appendChild(d); });
+      deck.appendChild(dotRow);
+      dotRow.children[0].classList.add('is-current');
+      const show = (i) => {
+        slides[index].classList.remove('is-current');
+        dotRow.children[index].classList.remove('is-current');
+        index = (i + slides.length) % slides.length;
+        slides[index].classList.add('is-current');
+        dotRow.children[index].classList.add('is-current');
+      };
       about.classList.add('is-clickable');
-      about.addEventListener('click', () => deck.next());
+      about.addEventListener('click', () => show(index + 1));
+      if (!reducedMotion) {
+        const page = about.closest('.page');
+        window.setInterval(() => {
+          if (!page || page.classList.contains('is-active')) show(index + 1);
+        }, 4500);
+      }
     }
-    const run = () => deck.start(() => SETTINGS.aboutMs);
-    // only cycle while the About page is actually open
-    const page = about.closest('.page');
-    const sync = () => (page && page.classList.contains('is-active') ? run() : deck.stop());
-    deck.show(0);
-    if (page) new MutationObserver(sync).observe(page, { attributes: true, attributeFilter: ['class'] });
-    sync();
-    about.addEventListener('pointerenter', () => deck.stop());
-    about.addEventListener('pointerleave', sync);
   }
 })();

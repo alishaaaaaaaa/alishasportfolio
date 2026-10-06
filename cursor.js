@@ -86,7 +86,7 @@
   let raf = 0;
   let hadSpecks = false;
 
-  const INTERACTIVE = 'a, button, [role="button"], .card, label, summary';
+  const INTERACTIVE = 'a, button, [role="button"], .project, label, summary';
 
   let lastSpeck = 0;
   function addSpecks(x, y) {
