@@ -18,7 +18,7 @@
     haloLag: 0.16,       // 0–1: how quickly the halo catches up (lower = lazier)
     trail: true,         // set to false for just the dot + halo
     specksPerMove: 1,    // how many specks each mouse move drops
-    maxSpecks: 46,       // cap, so the trail never gets heavy
+    maxSpecks: 28,       // cap, so the trail never gets heavy
     speckLifeMs: 900,    // how long a speck lingers before fading out
   };
 
@@ -42,21 +42,38 @@
   document.documentElement.classList.add('has-custom-cursor');
 
   const ctx = canvas.getContext('2d');
-  let dpr = 1;
+  // Specks are soft blurs, so they don't need retina resolution: drawing at
+  // 1x keeps the canvas 4x cheaper on high-DPI screens.
   function sizeCanvas() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(window.innerWidth * dpr);
-    canvas.height = Math.round(window.innerHeight * dpr);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
   }
   sizeCanvas();
   window.addEventListener('resize', sizeCanvas);
 
-  // Read the weather colour from CSS, as "r, g, b"
-  let glowRGB = '255, 236, 200';
+  // One speck is drawn once onto a small sprite in the weather colour, then
+  // just stamped for every speck each frame (much cheaper than building a
+  // gradient per speck per frame).
+  const SPRITE = 32;
+  const sprite = document.createElement('canvas');
+  sprite.width = sprite.height = SPRITE;
+  function drawSprite(rgb) {
+    const s = sprite.getContext('2d');
+    const half = SPRITE / 2;
+    const g = s.createRadialGradient(half, half, 0, half, half, half);
+    g.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    g.addColorStop(0.3, `rgba(${rgb}, 0.8)`);
+    g.addColorStop(1, `rgba(${rgb}, 0)`);
+    s.clearRect(0, 0, SPRITE, SPRITE);
+    s.fillStyle = g;
+    s.fillRect(0, 0, SPRITE, SPRITE);
+  }
+
+  // Read the weather colour from CSS ("r, g, b") and repaint the sprite
   function readGlow() {
     const raw = getComputedStyle(stage).getPropertyValue('--glow');
     const match = raw.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
-    if (match) glowRGB = `${match[1]}, ${match[2]}, ${match[3]}`;
+    drawSprite(match ? `${match[1]}, ${match[2]}, ${match[3]}` : '255, 236, 200');
   }
   readGlow();
   // the weather (and so the colour) can change after load
@@ -67,11 +84,17 @@
   const specks = [];
   let visible = false;
   let raf = 0;
+  let hadSpecks = false;
 
   const INTERACTIVE = 'a, button, [role="button"], .card, label, summary';
 
+  let lastSpeck = 0;
   function addSpecks(x, y) {
     if (!SETTINGS.trail) return;
+    // mice can fire 500+ moves a second; one speck every ~16ms is plenty
+    const now = performance.now();
+    if (now - lastSpeck < 16) return;
+    lastSpeck = now;
     for (let i = 0; i < SETTINGS.specksPerMove; i += 1) {
       if (specks.length >= SETTINGS.maxSpecks) specks.shift();
       specks.push({
@@ -110,26 +133,21 @@
     dot.style.transform = `translate3d(${mouse.x}px, ${mouse.y}px, 0)`;
     halo.style.transform = `translate3d(${haloPos.x}px, ${haloPos.y}px, 0)`;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = specks.length - 1; i >= 0; i -= 1) {
-      const s = specks[i];
-      const age = (now - s.born) / SETTINGS.speckLifeMs;
-      if (age >= 1) { specks.splice(i, 1); continue; }
-      s.x += s.vx;
-      s.y += s.vy;
-      const alpha = (1 - age) * (1 - age) * 0.9;
-      const x = s.x * dpr;
-      const y = s.y * dpr;
-      const r = s.r * dpr;
-      const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
-      g.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
-      g.addColorStop(0.35, `rgba(${glowRGB}, ${alpha * 0.8})`);
-      g.addColorStop(1, `rgba(${glowRGB}, 0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(x, y, r * 3, 0, Math.PI * 2);
-      ctx.fill();
+    if (hadSpecks || specks.length) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = specks.length - 1; i >= 0; i -= 1) {
+        const s = specks[i];
+        const age = (now - s.born) / SETTINGS.speckLifeMs;
+        if (age >= 1) { specks.splice(i, 1); continue; }
+        s.x += s.vx;
+        s.y += s.vy;
+        const size = s.r * 6;
+        ctx.globalAlpha = (1 - age) * (1 - age) * 0.9;
+        ctx.drawImage(sprite, s.x - size / 2, s.y - size / 2, size, size);
+      }
+      ctx.globalAlpha = 1;
     }
+    hadSpecks = specks.length > 0;
 
     // keep animating while the halo is still catching up or specks remain
     const settling = Math.abs(mouse.x - haloPos.x) + Math.abs(mouse.y - haloPos.y) > 0.3;

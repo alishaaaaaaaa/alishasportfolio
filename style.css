@@ -86,8 +86,9 @@ body::after {
   inset: 0;
   z-index: 999;
   pointer-events: none;
-  opacity: 0.05;
-  mix-blend-mode: overlay;
+  /* plain transparency, not a blend mode: a full-screen blend layer makes the
+     browser recompose everything under it whenever anything moves */
+  opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 @media (prefers-reduced-motion: reduce) {
@@ -137,22 +138,24 @@ body::after {
   background: var(--bg);
 }
 
-/* On tall screens the art doesn't fill the height. Instead of black bars,
-   the same art is shown huge, blurred and dimmed behind it (script.js sets
-   --room-img), and the art's top/bottom edges are feathered into it. */
-.viewport::before {
-  content: "";
-  position: absolute;
-  inset: -80px;
-  z-index: -1;
-  /* the art has a see-through window, so a wall-coloured fill sits under it */
-  background:
-    var(--room-img, none) 50% 35% / auto 150% no-repeat,
-    var(--slat-lo);
-  filter: blur(48px) brightness(0.5) saturate(1.15);
-  transform: scale(1.1);
-  pointer-events: none;
-  opacity: var(--light, 0);   /* stays dark until the blinds open, like the room */
+/* On tall (phone) screens the art doesn't fill the height. Instead of black
+   bars, a tiny pre-blurred copy of the art (set as --room-img by script.js)
+   is stretched behind it. No live CSS blur here: that's what made it slow.
+   It only exists on tall screens, so desktop never draws it at all. */
+@media (max-aspect-ratio: 85/100) {
+  .viewport::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--room-img, none) 50% 35% / auto 150% no-repeat;
+    pointer-events: none;
+    /* stays dark until the room starts lighting up, then fades in once by
+       itself (script.js adds .is-lit) instead of changing on every scroll step */
+    opacity: 0;
+    transition: opacity 0.9s ease;
+  }
+  .viewport.is-lit::before { opacity: 1; }
 }
 
 .scene {
@@ -524,17 +527,15 @@ body::after {
   opacity: 0;
   transition: opacity 0.7s ease;
 }
-/* The weather video is low-res when stretched to the whole screen and too
-   busy to read text over. Blurring it keeps the colour and the motion
-   (rain, leaves, city lights) as atmosphere, without competing with you. */
-.pages-sky video {
-  filter: blur(14px) saturate(1.1);
-  transform: scale(1.08);
-}
+/* A deeper scrim keeps the weather video as atmosphere behind your text.
+   (A CSS blur on the video looked nice but had to be redone on every video
+   frame, which made the pages laggy, so the scrim does the work instead.) */
 .pages-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(rgba(8, 8, 18, 0.5), rgba(8, 8, 18, 0.72));
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(8, 8, 18, 0.45), transparent 70%),
+    linear-gradient(rgba(8, 8, 18, 0.58), rgba(8, 8, 18, 0.8));
   opacity: 0;
   transition: opacity 0.7s ease;
 }
@@ -827,10 +828,11 @@ html.has-custom-cursor * { cursor: none !important; }
 }
 .cursor-visible .cursor-dot,
 .cursor-visible .cursor-halo { opacity: 1; }
-.cursor-trail { width: 100vw; height: 100vh; opacity: 1; mix-blend-mode: screen; }
+.cursor-trail { width: 100vw; height: 100vh; opacity: 1; }
 
 /* the "firefly" itself; the thin dark ring keeps it visible on bright day art */
 .cursor-dot {
+  will-change: transform;
   width: 8px; height: 8px;
   margin: -4px 0 0 -4px;
   border-radius: 50%;
@@ -848,7 +850,7 @@ html.has-custom-cursor * { cursor: none !important; }
   border-radius: 50%;
   border: 1px solid transparent;
   background: radial-gradient(closest-side, var(--glow, rgba(255, 220, 170, 0.5)), transparent);
-  mix-blend-mode: screen;
+  will-change: transform;
   transition:
     opacity 0.3s ease,
     width 0.35s var(--ease-out), height 0.35s var(--ease-out), margin 0.35s var(--ease-out),
@@ -861,7 +863,6 @@ html.has-custom-cursor * { cursor: none !important; }
   margin: -29px 0 0 -29px;
   border-color: rgba(255, 255, 255, 0.55);
   background: radial-gradient(closest-side, transparent 60%, var(--glow, rgba(255, 220, 170, 0.4)));
-  mix-blend-mode: normal;
 }
 .cursor-hover .cursor-dot { width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; }
 

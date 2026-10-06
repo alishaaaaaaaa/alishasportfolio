@@ -297,8 +297,10 @@
 
     const roomSrc = CONFIG.rooms[`${scene.tone}-${scene.time}`];
     if (roomSrc && roomEl.getAttribute('src') !== roomSrc) roomEl.src = roomSrc;
-    // the same art, blurred, fills the empty space around the room on tall (phone) screens
-    if (roomSrc) stage.style.setProperty('--room-img', `url("${roomSrc}")`);
+    // A tiny pre-blurred copy of the art (images/room-…-blur.jpg) fills the
+    // empty space around the room on tall (phone) screens. It's blurred ahead
+    // of time so the browser never has to blur anything while you scroll.
+    if (roomSrc) stage.style.setProperty('--room-img', `url("${roomSrc.replace(/\.png$/, '-blur.jpg')}")`);
     const skyKey = `${scene.sky}-${scene.time}`;
     setVideo(skyVideo, CONFIG.videos[skyKey], skyKey);
 
@@ -398,6 +400,7 @@
     style.setProperty('--hero', hero.toFixed(4));
 
     stage.classList.toggle('ui-visible', ui > 0.02);
+    stage.classList.toggle('is-lit', light > 0.35);
     stage.classList.toggle('ui-ready', ui > 0.9);
     hintEl.classList.toggle('hint-off', hero < 0.02);
 
