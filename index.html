@@ -147,8 +147,9 @@
             <div class="about-top">
             <div class="intro rise">
               <p class="status"><span class="status-dot" aria-hidden="true"></span>open to internships</p>
+              <p class="status"><span class="status-dot" aria-hidden="true"></span>prev @ JKMK Solutions</p>
               <p class="lead">I'm Alisha, a third-year Software Engineering student at McMaster University.</p>
-              <p>I like building things that feel good to use, whether that's a 3D room planner, an AI tool for cold cases, or a brain surgery simulator. Away from my laptop I'm usually behind a camera, out on a trail, in the kitchen, or halfway through a book or a movie.</p>
+              <p>i'm a third-year software engineering student at mcmaster university, building innovative projects for fun, daily use, and to channel my creativity. Away from my laptop, I'm usually spending time behind a camera, hiking a trail, or halfway through a book or a movie.</p>
             </div>
             <div class="about-photo is-empty rise" data-photos="images/about/alisha.jpg" role="img" aria-label="Alisha smiling in a greenhouse full of flowers"></div>
             </div>
@@ -158,9 +159,8 @@
               <div class="info-col">
                 <h3>currently</h3>
                 <ul class="plain">
-                  <li>3rd year, Software Engineering at McMaster</li>
-                  <li>Looking for internships</li>
-                  <li>Based in Hamilton, Ontario</li>
+                  <li>3rd year, Software Engineering at McMaster University</li>
+                  <li>Looking for Summer 2027 internships</li>
                 </ul>
               </div>
 
@@ -197,11 +197,8 @@
             <button class="back-link" type="button" data-back><span aria-hidden="true">←</span> back to the room</button>
             <h2 class="page-title rise" id="projects-title" tabindex="-1">projects</h2>
 
-            <!-- ✏️ HOW THESE WORK: each row is a short summary. Clicking it opens a
-                 popup built from the <template class="detail"> inside that row:
-                   data-media    photos/clips for the popup, separated by commas
-                   data-eyebrow  the small label above the title
-                 Everything inside the <template> becomes the popup's text. -->
+
+            
             <ol class="project-list">
               <li>
                 <article class="project rise">
@@ -307,14 +304,13 @@
               <p class="lead">I love getting involved and meeting people who care about the same things I do.</p>
             </div>
 
-            <!-- ✏️ PHOTO STRIP: two rows that drift sideways and speed up as you scroll.
-                 Add or swap <img> tags in either row (photos in images/community/). -->
+            <!-- PHOTO STRIP: two rows that drift sideways and speed up as you scroll. -->
+                 
             <div class="marquee rise" aria-hidden="true">
               <div class="marquee-row" data-direction="-1"><img src="images/community/deltahacks-1.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/islamic-relief-1.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/formula-electric-1.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/deltahacks-2.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/islamic-relief-2.jpg" alt="" loading="lazy" decoding="async"></div>
               <div class="marquee-row" data-direction="1"><img src="images/community/islamic-relief-3.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/deltahacks-3.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/formula-electric-4.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/deltahacks-4.jpg" alt="" loading="lazy" decoding="async"><img src="images/community/deltahacks-5.jpg" alt="" loading="lazy" decoding="async"></div>
             </div>
 
-            <!-- ✏️ Same as projects: the <template class="detail"> in each row is its popup. -->
             <ol class="project-list">
               <li>
                 <article class="project community-item rise">
@@ -373,16 +369,11 @@
             <h2 class="page-title rise" id="videography-title" tabindex="-1">videography</h2>
 
             <div class="intro rise">
-              <p class="lead">Capturing the beauty of the world, one frame at a time.</p>
-              <p>Little moments from walks around campus, the lakeshore and the city.</p>
+              <p class="lead">I love capturing world through my eyes, one frame at a time.</p>
+              <p>Little moments like walks across campus, or an early summer sunrise.</p>
             </div>
 
-            <!-- ✏️ THE SHOWREEL plays these clips in order, silently, one after another.
-                 For a clip called NAME, put in videos/films/:
-                   NAME.mp4       the clip (no sound needed)
-                   NAME.jpg       its first frame
-                   NAME-blur.jpg  a tiny blurred still, shown behind clips that don't fill the frame
-                 then add  videos/films/NAME  to the list below. -->
+            <!-- plays these clips in order, silently, one after another. -->
             <div class="reel rise" data-clips="videos/films/toronto, videos/films/green-and-gold, videos/films/sundown, videos/films/lakeshore, videos/films/under-the-trees"></div>
             <p class="page-footer">weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo</a></p>
           </div>
@@ -390,10 +381,7 @@
       </section>
     </div>
 
-    <!-- ============ POPUPS FOR THE THINGS IN THE ROOM ============
-         ✏️ Edit the words inside each <template>. data-title is the heading,
-         data-eyebrow the small label above it, and data-media (optional) a
-         comma-separated list of photos/clips, e.g. images/cat/1.jpg -->
+    <!-- ============ POPUPS FOR THE THINGS IN THE ROOM ============ -->
 
     <template id="detail-cat" data-eyebrow="my coworker" data-title="meet my partner" data-shape="portrait" data-media="images/cat/cat-1.jpg, images/cat/cat-2.jpg, images/cat/cat-3.jpg">
       <p class="detail-lead">No matter the time, she's right next to me: coding, schoolwork, you name it.</p>
@@ -402,12 +390,12 @@
         <li>She's 4 years old</li>
         <li>She's a Bengal tabby mix</li>
         <li>She's named after a Pokémon (I'll leave you to guess which one)</li>
-        <li>She's a bit of a diva and doesn't do well with people, but that's okay, because she helps me get my work done</li>
       </ul>
     </template>
 
     <template id="detail-books" data-eyebrow="on my shelf" data-title="reading list">
       <p class="detail-lead">What I'm reading, what I loved, and what's next.</p>
+
       <h4>currently reading</h4>
       <ul class="book-list">
         <li><span class="book-title">Sense and Sensibility</span><span class="book-author">Jane Austen</span></li>
@@ -434,19 +422,14 @@
         <label class="field"><span>your name</span><input name="name" type="text" autocomplete="name" required></label>
         <label class="field"><span>your email</span><input name="email" type="email" autocomplete="email" required></label>
         <label class="field"><span>what should we chat about?</span><textarea name="message" rows="4" required></textarea></label>
-        <!-- spam trap: real people never see or fill this -->
+
         <input class="coffee-trap" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
         <button class="coffee-send" type="submit">send <span aria-hidden="true">☕</span></button>
         <p class="coffee-status" role="status" aria-live="polite"></p>
       </form>
     </template>
 
-    <!-- Soft dust motes drifting upward, tinted with the room's current
-         weather colour (inherited from --glow, set on this same .viewport
-         element, which is why motes live inside it rather than beside it).
-         They're still fixed to the screen, so they float over the room AND
-         every page, tying the whole site together. Built by script.js so
-         the count/timing is easy to tune in one place. -->
+    <!-- Soft dust motes drifting upward -->
     <div class="motes" id="motes" aria-hidden="true"></div>
   </div>
 
