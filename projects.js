@@ -118,6 +118,7 @@
       eyebrow.textContent = tpl.dataset.eyebrow || '';
       title.textContent = heading;
       modal.dataset.kind = tpl.id || 'detail';
+      modal.dataset.shape = tpl.dataset.shape || '';   // "portrait" = tall photos
       body.innerHTML = '';
       body.appendChild(tpl.content.cloneNode(true));
 

@@ -1073,6 +1073,9 @@ body::after {
   transition: transform 0.4s var(--ease-out);
 }
 .detail-modal.is-open .detail-card { transform: none; }
+/* data-shape="portrait" on a template: tall photos, a narrower media column */
+.detail-modal[data-shape="portrait"] .detail-card { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr); width: min(940px, 100%); }
+.detail-modal[data-shape="portrait"] .detail-media { aspect-ratio: 4 / 5; max-height: calc(100% - 28px); }
 .detail-modal:not(.has-media) .detail-card { grid-template-columns: 1fr; width: min(620px, 100%); height: auto; max-height: 100%; }
 .detail-modal:not(.has-media) .detail-media { display: none; }
 
@@ -1239,6 +1242,7 @@ body::after {
     transform: translateY(40px);
   }
   .detail-media { margin: 0; border-radius: 0; }
+  .detail-modal[data-shape="portrait"] .detail-media { aspect-ratio: 1 / 1; max-height: none; }
   .detail-text { overflow: visible; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 32px); }
 }
 
