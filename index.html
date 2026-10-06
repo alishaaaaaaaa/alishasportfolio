@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
   <script src="cursor.js" defer></script>
+  <script src="projects.js" defer></script>
 </head>
 <body>
 
@@ -74,11 +75,12 @@
       <span class="hint-inner">scroll to open the blinds</span>
     </button>
 
-    <!-- ============ THE THREE GLASS BUTTONS ============ -->
+    <!-- ============ THE GLASS BUTTONS ============ -->
     <nav class="dock" id="dock" aria-label="Sections">
       <button class="glass-btn" type="button" data-page="about"     style="--k:0">about me</button>
       <button class="glass-btn" type="button" data-page="projects"  style="--k:1">projects</button>
       <button class="glass-btn" type="button" data-page="community" style="--k:2">community</button>
+      <button class="glass-btn" type="button" data-page="photos"    style="--k:3">photos</button>
     </nav>
 
     <!-- ============ THE PAGES (you zoom "through the window" into these) ============ -->
@@ -94,10 +96,17 @@
             <button class="back-link" type="button" data-back><span aria-hidden="true">←</span> back to the room</button>
             <h2 class="page-title rise" id="about-title" tabindex="-1">about me</h2>
 
-            <!-- ✏️ EDIT: replace everything in [brackets] with your own words -->
+            <!-- ✏️ YOUR PHOTOS: put them in images/about/ and list them in
+                 data-photos below, separated by commas, e.g.
+                 data-photos="images/about/1.jpg, images/about/2.jpg, images/about/3.jpg"
+                 One photo shows on its own; two or more become a slow carousel. -->
+            <div class="about-top">
             <div class="intro rise">
-              <p class="lead">[Write a short, warm intro here: who you are, what you do, and what you're working toward.]</p>
-              <p>[A second paragraph is a good place for your story, your values, or what you love making.]</p>
+              <p class="status"><span class="status-dot" aria-hidden="true"></span>open to internships</p>
+              <p class="lead">I'm Alisha, a third-year Software Engineering student at McMaster University.</p>
+              <p>I like building things that feel good to use, whether that's a 3D room planner, an AI tool for cold cases, or a brain surgery simulator. Away from my laptop I'm usually behind a camera, out on a trail, in the kitchen, or halfway through a book or a movie.</p>
+            </div>
+            <div class="about-photo is-empty rise" data-photos="images/about/alisha.jpg" role="img" aria-label="Alisha smiling in a greenhouse full of flowers"></div>
             </div>
 
             <!-- one panel, three columns (they stack on phones) -->
@@ -105,28 +114,30 @@
               <div class="info-col">
                 <h3>currently</h3>
                 <ul class="plain">
-                  <li>[what you're studying or working on]</li>
-                  <li>[what you're learning]</li>
-                  <li>[what you're looking for]</li>
+                  <li>3rd year, Software Engineering at McMaster</li>
+                  <li>Looking for internships</li>
+                  <li>Based in Hamilton, Ontario</li>
                 </ul>
               </div>
 
               <div class="info-col">
-                <h3>skills</h3>
+                <h3>off the clock</h3>
                 <ul class="chips">
-                  <li>skill one</li>
-                  <li>skill two</li>
-                  <li>skill three</li>
-                  <li>skill four</li>
+                  <li>photography</li>
+                  <li>art</li>
+                  <li>hiking</li>
+                  <li>movies</li>
+                  <li>reading</li>
+                  <li>cooking</li>
                 </ul>
               </div>
 
               <div class="info-col">
                 <h3>say hi</h3>
                 <ul class="plain">
-                  <li><a href="mailto:you@example.com">you@example.com</a></li>
-                  <li><a href="https://www.linkedin.com/" target="_blank" rel="noopener">linkedin</a></li>
-                  <li><a href="https://github.com/" target="_blank" rel="noopener">github</a></li>
+                  <li><a href="mailto:alishafaridi@gmail.com">alishafaridi@gmail.com</a></li>
+                  <li><a href="https://www.linkedin.com/in/alisha-faridi" target="_blank" rel="noopener">linkedin <span aria-hidden="true">↗</span></a></li>
+                  <li><a href="https://github.com/alishaaaaaaaa" target="_blank" rel="noopener">github <span aria-hidden="true">↗</span></a></li>
                 </ul>
               </div>
             </div>
@@ -142,34 +153,71 @@
             <button class="back-link" type="button" data-back><span aria-hidden="true">←</span> back to the room</button>
             <h2 class="page-title rise" id="projects-title" tabindex="-1">projects</h2>
 
-            <div class="grid-3">
-              <!-- ✏️ EDIT: copy one <article> for each project you want to show.
-                   To use a real image, replace the card-media div with:
-                   <div class="card-media"><img src="images/project-one.jpg" alt="describe the image"></div> -->
-              <article class="panel card rise">
-                <div class="card-media" role="img" aria-label="Project one preview"></div>
-                <h3>project one</h3>
-                <p>[One or two sentences: what it is, what you did, what you learned.]</p>
-                <ul class="chips"><li>tag</li><li>tag</li></ul>
-                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">view project →</a>
-              </article>
+            <!-- ✏️ PREVIEWS: add data-preview to a project's <article> with one or
+                 more clips/photos separated by commas, e.g.
+                 data-preview="videos/projects/roomify.mp4, images/projects/roomify-1.jpg"
+                 On a computer they cycle in a card beside the cursor while you
+                 hover; on a phone they're a swipeable strip. No data-preview = no preview. -->
+            <ol class="project-list">
+              <li>
+                <article class="project rise" data-preview="videos/projects/roomify.mp4">
+                  <span class="project-num" aria-hidden="true">01</span>
+                  <div class="project-body">
+                    <h3 class="project-name">Roomify</h3>
+                    <p class="project-desc">Design a room, furnish it with real products you can buy, walk through it in 3D, and check out.</p>
+                    <ul class="project-points">
+                      <li>Draw any room shape and drag furniture into a to-scale plan with snapping, collision and auto-layout</li>
+                      <li>First-person 3D walkthrough with textured floors and real product models</li>
+                      <li>Live prices from the Shopify Storefront API and one-click checkout</li>
+                    </ul>
+                    <ul class="chips"><li>React</li><li>TypeScript</li><li>three.js</li><li>Shopify API</li><li>Tailwind</li></ul>
+                  </div>
+                  <div class="project-links">
+                    <a href="https://roomify-zz16.onrender.com" target="_blank" rel="noopener">live <span aria-hidden="true">↗</span></a>
+                    <a href="https://github.com/alishaaaaaaaa/roomify" target="_blank" rel="noopener">code <span aria-hidden="true">↗</span></a>
+                  </div>
+                </article>
+              </li>
 
-              <article class="panel card rise">
-                <div class="card-media" role="img" aria-label="Project two preview"></div>
-                <h3>project two</h3>
-                <p>[One or two sentences: what it is, what you did, what you learned.]</p>
-                <ul class="chips"><li>tag</li><li>tag</li></ul>
-                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">view project →</a>
-              </article>
+              <li>
+                <article class="project rise" data-preview="videos/projects/brain-surgery-simulator.mp4">
+                  <span class="project-num" aria-hidden="true">02</span>
+                  <div class="project-body">
+                    <h3 class="project-name">IC-PC Aneurysm Clipping Simulator</h3>
+                    <p class="project-desc">A browser-based simulator of microsurgical brain aneurysm clipping, seen through an operating microscope. In English and French.</p>
+                    <ul class="project-points">
+                      <li>Six guided surgical steps with a mentor, live vitals and an end-of-case debrief</li>
+                      <li>Ten instruments, including Doppler, ICG and an endoscope</li>
+                      <li>Procedural anatomy and a bleeding, flow and rupture model, backed by tests</li>
+                    </ul>
+                    <ul class="chips"><li>TypeScript</li><li>three.js</li><li>Web Audio</li><li>Vitest</li></ul>
+                  </div>
+                  <div class="project-links">
+                    <a href="https://github.com/alishaaaaaaaa/brain-surgery-simulator" target="_blank" rel="noopener">code <span aria-hidden="true">↗</span></a>
+                  </div>
+                </article>
+              </li>
 
-              <article class="panel card rise">
-                <div class="card-media" role="img" aria-label="Project three preview"></div>
-                <h3>project three</h3>
-                <p>[One or two sentences: what it is, what you did, what you learned.]</p>
-                <ul class="chips"><li>tag</li><li>tag</li></ul>
-                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">view project →</a>
-              </article>
-            </div>
+              <li>
+                <article class="project rise">
+                  <span class="project-num" aria-hidden="true">03</span>
+                  <div class="project-body">
+                    <h3 class="project-name">EchoCases</h3>
+                    <p class="project-desc">An AI-powered cold case platform that surfaces hidden connections between unsolved cases across time and place.</p>
+                    <ul class="project-points">
+                      <li>Semantic matching with sentence embeddings finds cases with similar narratives across jurisdictions</li>
+                      <li>HDBSCAN clustering flags possible crime series that were never linked</li>
+                      <li>Interactive Mapbox map with an animated timeline and Gemini-powered analysis</li>
+                    </ul>
+                    <ul class="chips"><li>Python</li><li>Flask</li><li>React</li><li>scikit-learn</li><li>Mapbox</li><li>Gemini</li></ul>
+                  </div>
+                  <div class="project-links">
+                    <a href="https://youtu.be/KhEZa9hirzo" target="_blank" rel="noopener">demo <span aria-hidden="true">↗</span></a>
+                    <a href="https://github.com/alishaaaaaaaa/EchoCases" target="_blank" rel="noopener">code <span aria-hidden="true">↗</span></a>
+                  </div>
+                </article>
+              </li>
+            </ol>
             <p class="page-footer">weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo</a></p>
           </div>
         </div>
@@ -183,28 +231,79 @@
             <h2 class="page-title rise" id="community-title" tabindex="-1">community</h2>
 
             <div class="intro rise">
-              <p class="lead">[A sentence or two about why community matters to you and how you show up for it.]</p>
+              <p class="lead">I love getting involved and meeting people who care about the same things I do.</p>
             </div>
 
-            <div class="grid-3">
-              <!-- ✏️ EDIT: groups, clubs, volunteering, talks, events, newsletters, anything -->
-              <article class="panel card rise">
-                <h3>community one</h3>
-                <p>[Your role and what you do there.]</p>
-                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">visit →</a>
-              </article>
+            <!-- ✏️ PICTURES: put photos in images/community/ and add them to an
+                 item's <article> as a comma-separated list, e.g.
+                 data-preview="images/community/deltahacks-1.jpg, images/community/deltahacks-2.jpg"
+                 Same behaviour as projects: a cycling card on hover, a swipe strip on phones. -->
+            <ol class="project-list">
+              <li>
+                <article class="project community-item rise" data-preview="images/community/deltahacks-1.jpg, images/community/deltahacks-2.jpg, images/community/deltahacks-3.jpg, images/community/deltahacks-4.jpg, images/community/deltahacks-5.jpg">
+                  <div class="project-body">
+                    <h3 class="project-name">DeltaHacks</h3>
+                    <p class="project-role">Events Executive</p>
+                    <p class="project-desc">One of the biggest hackathons in Canada. For the past two years I've planned and led events for the club, including events at the main hackathon.</p>
+                  </div>
+                  <div class="stat"><span class="stat-num">700+</span><span class="stat-label">hackers at the main event</span></div>
+                </article>
+              </li>
 
-              <article class="panel card rise">
-                <h3>community two</h3>
-                <p>[Your role and what you do there.]</p>
-                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">visit →</a>
-              </article>
+              <li>
+                <article class="project community-item rise" data-preview="images/community/islamic-relief-1.jpg, images/community/islamic-relief-2.jpg, images/community/islamic-relief-3.jpg">
+                  <div class="project-body">
+                    <h3 class="project-name">McMaster Islamic Relief</h3>
+                    <p class="project-role">Marketing Director</p>
+                    <p class="project-desc">A student-run charity where we work together for a good cause. As Marketing Director, I lead how we tell those stories.</p>
+                  </div>
+                  <div class="stat"><span class="stat-num">$100k+</span><span class="stat-label">raised for charity, more than any other North American university</span></div>
+                </article>
+              </li>
 
-              <article class="panel card rise">
-                <h3>community three</h3>
-                <p>[Your role and what you do there.]</p>
-                <a class="card-link" href="https://example.com" target="_blank" rel="noopener">visit →</a>
-              </article>
+              <li>
+                <article class="project community-item rise" data-preview="images/community/formula-electric-1.jpg, images/community/formula-electric-2.jpg, images/community/formula-electric-3.jpg, images/community/formula-electric-4.jpg">
+                  <div class="project-body">
+                    <h3 class="project-name">McMaster Formula Electric</h3>
+                    <p class="project-role">Human Factors &amp; Ergonomics</p>
+                    <p class="project-desc">On the human factors and ergonomics team, working on the driver dashboard and cockpit ergonomics with other subteams, from CAD models to testing in the car.</p>
+                  </div>
+                </article>
+              </li>
+            </ol>
+            <p class="page-footer">weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo</a></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- PHOTOS ---------------- -->
+      <section class="page" id="page-photos" role="dialog" aria-modal="true" aria-labelledby="photos-title">
+        <div class="page-scroll">
+          <div class="page-inner">
+            <button class="back-link" type="button" data-back><span aria-hidden="true">←</span> back to the room</button>
+            <h2 class="page-title rise" id="photos-title" tabindex="-1">photos</h2>
+
+            <div class="intro rise">
+              <p class="lead">Capturing the beauty of the world, one window at a time.</p>
+              <p>The weather outside this room is real, and so are these. A few favourites from my camera roll.</p>
+            </div>
+
+            <!-- ✏️ ADDING PHOTOS: put them in images/photos/ (JPGs about 1600px
+                 on the long side keep the page fast), then copy one <figure>
+                 per photo. The caption is optional. Any mix of portrait and
+                 landscape works: the gallery packs them into columns. -->
+            <div class="gallery rise">
+              <figure class="photo is-empty" style="--ar: 4/5"><figcaption>place, year</figcaption></figure>
+              <figure class="photo is-empty" style="--ar: 3/2"><figcaption>place, year</figcaption></figure>
+              <figure class="photo is-empty" style="--ar: 1/1"><figcaption>place, year</figcaption></figure>
+              <figure class="photo is-empty" style="--ar: 3/2"><figcaption>place, year</figcaption></figure>
+              <figure class="photo is-empty" style="--ar: 4/5"><figcaption>place, year</figcaption></figure>
+              <figure class="photo is-empty" style="--ar: 3/2"><figcaption>place, year</figcaption></figure>
+              <!-- a real one looks like:
+              <figure class="photo">
+                <img src="images/photos/sunset-dundas.jpg" alt="Orange sunset over the Dundas valley" loading="lazy">
+                <figcaption>dundas valley, 2025</figcaption>
+              </figure> -->
             </div>
             <p class="page-footer">weather by <a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo</a></p>
           </div>

@@ -623,17 +623,6 @@ body::after {
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.55);
 }
-.card h3 {
-  /* project / community names are titles, not labels */
-  margin: 0 0 0.5rem;
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-variation-settings: "SOFT" 100, "opsz" 36;
-  font-size: 1.35rem;
-  letter-spacing: -0.01em;
-  text-transform: none;
-  color: #fff;
-}
 .panel p { margin: 0 0 0.9rem; line-height: 1.65; color: rgba(255, 255, 255, 0.78); }
 .panel p:last-child { margin-bottom: 0; }
 
@@ -661,12 +650,6 @@ body::after {
 
 .page-inner > .panel { margin-bottom: clamp(14px, 2vw, 24px); }
 
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-  gap: clamp(14px, 2vw, 22px);
-}
-
 .plain { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.65rem; line-height: 1.5; color: rgba(255, 255, 255, 0.85); }
 
 /* chips are labels, not buttons, so they don't react to hover */
@@ -680,48 +663,315 @@ body::after {
   line-height: 1.2;
 }
 
-/* Cards are the only things that lift on hover, because they're clickable */
-.card {
+/* about: intro text with your photo beside it */
+.about-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 26vw, 300px);
+  gap: clamp(28px, 5vw, 64px);
+  align-items: start;
+  margin-bottom: clamp(28px, 5vw, 48px);
+}
+.about-top .intro { margin-bottom: 0; }
+.about-photo {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.about-photo.is-clickable { cursor: pointer; }
+.about-photo .deck-slide img { object-position: 50% 35%; }   /* keep faces in frame when cropped */
+.about-photo.is-empty {
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+}
+@media (max-width: 760px) {
+  .about-top { grid-template-columns: 1fr; }
+  .about-photo { aspect-ratio: 4 / 3; order: -1; }   /* photo first, then the words */
+}
+
+/* "open to internships" badge, with a softly pulsing dot */
+.status {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 1.1rem !important;
+  padding: 0.4rem 0.85rem 0.4rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.82rem;
+  line-height: 1 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+.status-dot {
+  position: relative;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #7ee2a8;
+}
+.status-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #7ee2a8;
+  animation: status-ping 2.4s ease-out infinite;
+}
+@keyframes status-ping { 0% { transform: scale(1); opacity: 0.6; } 80%, 100% { transform: scale(2.8); opacity: 0; } }
+
+/* ---- project / community list: numbered rows split by hairlines ---- */
+.project-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.project-list > li { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
+
+.project {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.2rem 1fr auto;
+  gap: 0 clamp(16px, 3vw, 40px);
+  padding: clamp(24px, 3.5vw, 36px) clamp(4px, 1vw, 12px);
+  border-radius: 14px;
+  transition: background 0.35s ease;
+}
+.project:hover { background: rgba(255, 255, 255, 0.04); }
+
+.project-num {
+  padding-top: 0.45rem;
+  font: 500 0.8rem/1 var(--font-ui);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+.project-name {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-variation-settings: "SOFT" 100, "opsz" 48;
+  font-size: clamp(1.45rem, 2.6vw, 1.9rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: #fff;
+}
+.project-role {
+  margin: 0 0 0.7rem;
+  font: 600 0.72rem/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.project-desc {
+  max-width: 40rem;
+  margin: 0 0 0.9rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.82);
+}
+.project-points {
+  max-width: 40rem;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.93rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.66);
+}
+.project-points li { position: relative; padding-left: 1.1rem; }
+.project-points li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0.68em;
+  width: 5px; height: 1px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.project-links {
   display: flex;
   flex-direction: column;
-  transition:
-    opacity 0.7s var(--ease-out), transform 0.5s var(--ease-out),
-    border-color 0.3s ease, background 0.3s ease;
+  align-items: flex-end;
+  gap: 0.6rem;
+  padding-top: 0.4rem;
+  white-space: nowrap;
 }
-.card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.26);
-  background: rgba(255, 255, 255, 0.09);
+.project-links a {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
-.card-media {
+.project-links a span { display: inline-block; transition: transform 0.25s var(--ease-out); }
+.project-links a:hover { color: #fff; }
+.project-links a:hover span { transform: translate(2px, -2px); }
+
+/* community rows: no number column; a big stat on the right instead */
+.community-item { grid-template-columns: 1fr auto; }
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: 13rem;
+  padding-top: 0.2rem;
+  text-align: right;
+}
+.stat-num {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.stat-label {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+@media (max-width: 640px) {
+  .project { grid-template-columns: 1fr; padding-inline: 0; }
+  .project-num { padding: 0 0 0.6rem; }
+  .project-links { flex-direction: row; align-items: center; gap: 1.4rem; padding-top: 1.1rem; }
+  .project-links:empty { display: none; }
+  .stat { align-items: flex-start; text-align: left; max-width: none; margin-top: 0.4rem; }
+}
+
+/* ---- preview clips (projects.js) ---- */
+/* on a computer: one floating card that follows the cursor */
+.project-preview {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 30;
+  width: min(340px, 30vw);
   aspect-ratio: 16 / 10;
-  margin: calc(clamp(22px, 3vw, 32px) * -1 + 8px) calc(clamp(22px, 3vw, 32px) * -1 + 8px) 1.2rem;
   overflow: hidden;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03));
+  background: #111;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.92;
+  transition: opacity 0.25s ease, scale 0.35s var(--ease-out);
+  will-change: transform;
 }
-.card-media img {
+.project-preview.is-shown { opacity: 1; scale: 1; }
+.project-preview .deck[hidden] { display: none; }
+/* on a phone: the clip sits inline at the top of its project */
+.project-inline-media {
+  grid-column: 1 / -1;
+  margin-bottom: 1.1rem;
+  overflow: hidden;
+  border-radius: 12px;
+  aspect-ratio: 16 / 10;
+  background: rgba(255, 255, 255, 0.05);
+}
+.project-inline-media { position: relative; }
+
+/* ---- carousels (projects.js) ---- */
+/* crossfading deck: hover cards + the about photo */
+.deck { position: absolute; inset: 0; }
+.deck-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.deck-slide.is-current { opacity: 1; }
+.deck-slide img, .deck-slide video,
+.strip-cell img, .strip-cell video {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.7s var(--ease-out);
 }
-.card:hover .card-media img { transform: scale(1.04); }
-.card .chips { margin: 0.2rem 0 1.2rem; }
-.card-link {
-  margin-top: auto;
-  align-self: flex-start;
-  font-weight: 500;
-  font-size: 0.92rem;
-  color: #fff;
-  text-decoration: none !important;
+
+/* little progress dots; the current one stretches into a pill */
+.deck-dots {
+  position: absolute;
+  left: 0; right: 0; bottom: 10px;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  pointer-events: none;
 }
-/* make the whole card clickable through its link */
-.card { position: relative; }
-.card-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-.card-link:focus-visible { outline: none; }
-.card:has(.card-link:focus-visible) { outline: 2px solid #fff; outline-offset: 3px; }
+.deck-dot {
+  width: 6px; height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.35);
+  transition: width 0.35s var(--ease-out), background 0.3s ease;
+}
+.deck-dot.is-current { width: 16px; background: #fff; }
+button.deck-dot { position: relative; pointer-events: auto; cursor: pointer; }
+button.deck-dot::before { content: ""; position: absolute; inset: -8px -3px; }   /* bigger tap target */
+button.deck-dot:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* swipeable strip on phones */
+.strip-wrap { position: absolute; inset: 0; }
+.strip {
+  display: flex;
+  height: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.strip::-webkit-scrollbar { display: none; }
+.strip-cell { flex: 0 0 100%; height: 100%; scroll-snap-align: center; }
+
+/* ---- photo gallery: masonry columns ---- */
+.gallery {
+  columns: 3 260px;
+  column-gap: clamp(10px, 1.6vw, 18px);
+}
+.photo {
+  position: relative;
+  margin: 0 0 clamp(10px, 1.6vw, 18px);
+  break-inside: avoid;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.8s var(--ease-out), filter 0.4s ease;
+}
+.photo:hover img { transform: scale(1.03); }
+.photo figcaption {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 2rem 0.9rem 0.75rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+  opacity: 0;
+  translate: 0 6px;
+  transition: opacity 0.3s ease, translate 0.4s var(--ease-out);
+}
+.photo:hover figcaption { opacity: 1; translate: 0 0; }
+/* placeholder tiles until real photos are added */
+.photo.is-empty {
+  aspect-ratio: var(--ar, 4 / 5);
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+}
+.photo.is-empty figcaption { opacity: 0.5; translate: 0 0; background: none; }
+@media (hover: none) { .photo figcaption { opacity: 1; translate: 0 0; } }
 
 /* small credit line at the end of every page */
 .page-footer {
@@ -743,8 +993,7 @@ body::after {
   transform: none;
   transition-delay: calc(var(--d, 0) * 80ms + 250ms);
 }
-/* once a card has risen in, hovering it lifts straight away */
-.pages.is-open .card.rise:hover { transform: translateY(-4px); transition-delay: 0s; }
+
 
 /* ------------------------------------------------------------------
    9. AMBIENT MOTES
@@ -798,11 +1047,19 @@ body::after {
    10. MOTION PREFERENCES & SMALL SCREENS
    ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
+  .status-dot::after { animation: none; }
+  .deck-slide { transition-duration: 0.01s; }
   .scene, .pages-sky, .pages-scrim, .rise { transition-duration: 0.01s !important; transition-delay: 0s !important; }
   .laptop-glow, .caret, .hint-inner::after { animation: none; }
 }
 
 @media (max-width: 520px) {
+  /* four buttons: an even 2 × 2 instead of a row of three plus one */
+  .dock {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 160px));
+    justify-content: center;
+  }
   .dock .glass-btn { padding: 0.85rem 1.05rem; font-size: 0.92rem; }
   .panel { border-radius: 18px; }
 }
