@@ -300,6 +300,7 @@
     // A tiny pre-blurred copy of the art (images/room-…-blur.jpg) fills the
     // empty space around the room on tall (phone) screens. It's blurred ahead
     // of time so the browser never has to blur anything while you scroll.
+    if (roomSrc) stage.style.setProperty('--room-src', `url("${roomSrc}")`);   // used by rooms.js glow
     if (roomSrc) stage.style.setProperty('--room-img', `url("${roomSrc.replace(/\.png$/, '-blur.jpg')}")`);
     const skyKey = `${scene.sky}-${scene.time}`;
     setVideo(skyVideo, CONFIG.videos[skyKey], skyKey);

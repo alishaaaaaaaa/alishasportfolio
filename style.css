@@ -496,6 +496,123 @@ body::after {
   pointer-events: none;
 }
 .ui-visible .dock { visibility: visible; }
+/* rooms.js places the dock over the lower part of the window */
+.dock.is-placed {
+  top: var(--dock-top);
+  bottom: auto;
+  translate: 0 -50%;
+}
+
+/* the small "psst" line under the buttons (+ phone links to off-screen objects) */
+/* an invisible full-width break so the hint always sits on its own line */
+.dock::after { content: ""; order: 1; flex-basis: 100%; height: 0; }
+.room-hint {
+  order: 2;
+  flex: 0 1 auto;
+  max-width: 100%;
+  margin: -0.2rem 0 0;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(12, 10, 18, 0.38);
+  -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+  text-align: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.88);
+  opacity: clamp(0, calc((var(--ui, 0) - 0.5) * 2), 1);
+  transition: opacity 0.45s ease;
+}
+.is-leaving .room-hint { opacity: 0; }
+.room-extras { display: none; }
+.room-hint.has-extras { border-radius: 14px; }
+.room-hint.has-extras .room-extras { display: block; margin-top: 0.3rem; }
+.room-extras::before { content: "also: "; color: rgba(255, 255, 255, 0.65); }
+.room-extras button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+.room-extras button + button { margin-left: 0.7rem; }
+.ui-ready .room-extras button { pointer-events: auto; }
+
+/* ---- clickable objects in the room (rooms.js) ---- */
+.objects { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+.obj { position: absolute; inset: 0; pointer-events: none; }
+/* the click target: cut to the object's outline */
+.obj-hit {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  clip-path: var(--poly);
+  pointer-events: none;
+}
+.ui-ready:not(.is-leaving) .obj-hit { pointer-events: auto; }
+.obj-hit:focus { outline: none; }
+
+/* the glow: the object itself, cut out of the art, a touch brighter, with a
+   soft warm halo that follows its outline */
+.obj-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  filter:
+    drop-shadow(0 0 1.5px rgba(255, 246, 228, 0.95))
+    drop-shadow(0 0 10px var(--glow, rgba(255, 220, 170, 0.6)));
+  transition: opacity 0.35s ease;
+  will-change: opacity;
+}
+.obj-cut {
+  position: absolute;
+  inset: 0;
+  background: var(--room-src) 0 0 / 100% 100% no-repeat;
+  clip-path: var(--poly);
+  filter: brightness(1.14) saturate(1.06);
+}
+.obj-hit:hover ~ .obj-glow,
+.obj-hit:focus-visible ~ .obj-glow { opacity: 1; }
+
+/* every so often each object gives a faint shimmer, so it reads as clickable */
+.ui-ready:not(.is-leaving) .obj-glow { animation: obj-hint 11s ease-in-out var(--hint-delay, 2s) infinite; }
+.ui-ready .obj-hit:hover ~ .obj-glow,
+.ui-ready .obj-hit:focus-visible ~ .obj-glow { animation: none; opacity: 1; }
+@keyframes obj-hint {
+  0%, 14%, 100% { opacity: 0; }
+  7% { opacity: 0.55; }
+}
+
+/* small label above the object */
+.obj-label {
+  position: absolute;
+  left: var(--lx);
+  top: var(--ly);
+  translate: -50% calc(-100% - 10px);
+  padding: 0.38rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(16, 12, 22, 0.55);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+  color: #fff;
+  font: 500 0.8rem/1 var(--font-ui);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.25s ease, transform 0.3s var(--ease-out);
+}
+.obj-hit:hover ~ .obj-label,
+.obj-hit:focus-visible ~ .obj-label { opacity: 1; transform: none; }
 
 /* each button fades up a moment after the one before it (--k is 0, 1, 2) */
 .dock .glass-btn {
@@ -1125,6 +1242,82 @@ body::after {
   .detail-text { overflow: visible; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 32px); }
 }
 
+/* popups opened from the room: html stops scrolling (so the blinds don't move) */
+html.modal-open { overflow: hidden; }
+
+/* reading list */
+.book-list { margin: 0 0 0.4rem; padding: 0; list-style: none; display: grid; gap: 0.15rem; }
+.book-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.book-title {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 100, "opsz" 24;
+  font-size: 1.02rem;
+  color: #fff;
+}
+.book-author { flex-shrink: 0; font-size: 0.82rem; color: rgba(255, 255, 255, 0.55); }
+
+/* coffee chat form */
+.coffee-form { display: grid; gap: 0.9rem; margin-top: 1.2rem; }
+.field { display: grid; gap: 0.4rem; }
+.field span {
+  font: 600 0.72rem/1 var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font: 400 0.95rem/1.5 var(--font-ui);
+  resize: vertical;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+.coffee-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.coffee-send {
+  justify-self: start;
+  margin-top: 0.3rem;
+  padding: 0.75rem 1.4rem;
+  border: 0;
+  border-radius: 999px;
+  background: #f6eddc;
+  color: #1b1622;
+  font: 600 0.92rem/1 var(--font-ui);
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-out), opacity 0.2s ease;
+}
+.coffee-send:hover { transform: translateY(-1px); }
+.coffee-send:disabled { opacity: 0.6; cursor: default; transform: none; }
+.coffee-send:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.coffee-status { margin: 0 !important; font-size: 0.85rem !important; }
+.coffee-status[data-state="error"] { color: #ffb4a8 !important; }
+.coffee-status a { color: #fff; }
+.coffee-done { padding: 1.4rem 0 0.4rem; }
+.coffee-done-title {
+  margin: 0 0 0.5rem !important;
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 100, "opsz" 72;
+  font-size: 1.6rem !important;
+  color: #fff !important;
+}
+
 /* ---- showreel (films.js) ---- */
 .reel {
   position: relative;
@@ -1238,18 +1431,15 @@ body::after {
   .status-dot::after { animation: none; }
   .deck-slide { transition-duration: 0.01s; }
   .detail-modal, .detail-card, .reel-video { transition-duration: 0.01s; }
+  .obj-glow { animation: none !important; }
   .scene, .pages-sky, .pages-scrim, .rise { transition-duration: 0.01s !important; transition-delay: 0s !important; }
   .laptop-glow, .caret, .hint-inner::after { animation: none; }
 }
 
 @media (max-width: 520px) {
-  /* four buttons: an even 2 × 2 instead of a row of three plus one */
-  .dock {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 160px));
-    justify-content: center;
-  }
-  .dock .glass-btn { padding: 0.85rem 1.05rem; font-size: 0.92rem; }
+  /* three buttons fit on one row */
+  .dock { gap: 8px; padding-inline: 12px; }
+  .dock .glass-btn { padding: 0.8rem 0.95rem; font-size: 0.9rem; }
   .panel { border-radius: 18px; }
 }
 

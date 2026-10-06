@@ -18,6 +18,7 @@
   <script src="cursor.js" defer></script>
   <script src="projects.js" defer></script>
   <script src="films.js" defer></script>
+  <script src="rooms.js" defer></script>
 </head>
 <body>
 
@@ -60,6 +61,33 @@
 
       <!-- 6. Soft glow from the laptop screen -->
       <div class="laptop-glow" aria-hidden="true"></div>
+
+      <!-- 7. Things in the room you can click. Their outlines (one per room
+              look) live in rooms.js; what they open is set here:
+              data-detail = a popup (a <template> further down this file)
+              data-page   = one of the pages -->
+      <div class="objects" id="objects">
+        <div class="obj" data-obj="cat">
+          <button class="obj-hit" type="button" data-detail="detail-cat" aria-label="Meet my cat"></button>
+          <span class="obj-glow" aria-hidden="true"><span class="obj-cut"></span></span>
+          <span class="obj-label" aria-hidden="true">meet my cat</span>
+        </div>
+        <div class="obj" data-obj="books">
+          <button class="obj-hit" type="button" data-detail="detail-books" aria-label="My reading list"></button>
+          <span class="obj-glow" aria-hidden="true"><span class="obj-cut"></span></span>
+          <span class="obj-label" aria-hidden="true">my reading list</span>
+        </div>
+        <div class="obj" data-obj="photos">
+          <button class="obj-hit" type="button" data-page="videography" aria-label="My videography"></button>
+          <span class="obj-glow" aria-hidden="true"><span class="obj-cut"></span></span>
+          <span class="obj-label" aria-hidden="true">my films</span>
+        </div>
+        <div class="obj" data-obj="mug">
+          <button class="obj-hit" type="button" data-detail="detail-coffee" aria-label="Set up a coffee chat"></button>
+          <span class="obj-glow" aria-hidden="true"><span class="obj-cut"></span></span>
+          <span class="obj-label" aria-hidden="true">coffee chat?</span>
+        </div>
+      </div>
     </div>
 
     <!-- ============ INTRO TEXT ============ -->
@@ -81,7 +109,7 @@
       <button class="glass-btn" type="button" data-page="about"     style="--k:0">about me</button>
       <button class="glass-btn" type="button" data-page="projects"  style="--k:1">projects</button>
       <button class="glass-btn" type="button" data-page="community" style="--k:2">community</button>
-      <button class="glass-btn" type="button" data-page="videography" style="--k:3">videography</button>
+      <p class="room-hint" style="--k:3">psst… some things in this room are clickable</p>
     </nav>
 
     <!-- ============ THE PAGES (you zoom "through the window" into these) ============ -->
@@ -346,6 +374,54 @@
         </div>
       </section>
     </div>
+
+    <!-- ============ POPUPS FOR THE THINGS IN THE ROOM ============
+         ✏️ Edit the words inside each <template>. data-title is the heading,
+         data-eyebrow the small label above it, and data-media (optional) a
+         comma-separated list of photos/clips, e.g. images/cat/1.jpg -->
+
+    <template id="detail-cat" data-eyebrow="the real boss of this room" data-title="meet [cat's name]" data-media="">
+      <p class="detail-lead">[Cat's name] is my [age]-year-old [breed / colour] and my favourite coworker.</p>
+      <p>[A line or two about them: how they came into your life, their personality, where they like to sit while you code.]</p>
+      <h4>fun facts</h4>
+      <ul class="project-points">
+        <li>[favourite snack]</li>
+        <li>[weirdest habit]</li>
+        <li>[their job title, e.g. chief keyboard warmer]</li>
+      </ul>
+    </template>
+
+    <template id="detail-books" data-eyebrow="on my shelf" data-title="reading list">
+      <p class="detail-lead">What I'm reading, what I loved, and what's next.</p>
+      <h4>currently reading</h4>
+      <ul class="book-list">
+        <li><span class="book-title">[Book title]</span><span class="book-author">[Author]</span></li>
+      </ul>
+      <h4>favourites</h4>
+      <ul class="book-list">
+        <li><span class="book-title">[Book title]</span><span class="book-author">[Author]</span></li>
+        <li><span class="book-title">[Book title]</span><span class="book-author">[Author]</span></li>
+        <li><span class="book-title">[Book title]</span><span class="book-author">[Author]</span></li>
+      </ul>
+      <h4>up next</h4>
+      <ul class="book-list">
+        <li><span class="book-title">[Book title]</span><span class="book-author">[Author]</span></li>
+        <li><span class="book-title">[Book title]</span><span class="book-author">[Author]</span></li>
+      </ul>
+    </template>
+
+    <template id="detail-coffee" data-eyebrow="say hi" data-title="let's set up a coffee chat">
+      <p class="detail-lead">Want to talk internships, projects, or anything at all? Leave a note and I'll get back to you.</p>
+      <form class="coffee-form" novalidate>
+        <label class="field"><span>your name</span><input name="name" type="text" autocomplete="name" required></label>
+        <label class="field"><span>your email</span><input name="email" type="email" autocomplete="email" required></label>
+        <label class="field"><span>what should we chat about?</span><textarea name="message" rows="4" required></textarea></label>
+        <!-- spam trap: real people never see or fill this -->
+        <input class="coffee-trap" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button class="coffee-send" type="submit">send <span aria-hidden="true">☕</span></button>
+        <p class="coffee-status" role="status" aria-live="polite"></p>
+      </form>
+    </template>
 
     <!-- Soft dust motes drifting upward, tinted with the room's current
          weather colour (inherited from --glow, set on this same .viewport

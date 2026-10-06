@@ -46,7 +46,7 @@
   }
 
   /* ================= 1. detail popups ================= */
-  const openers = Array.from(document.querySelectorAll('.project-open'));
+  const openers = Array.from(document.querySelectorAll('.project-open, [data-detail]'));
 
   if (openers.length) {
     const modal = document.createElement('div');
@@ -109,13 +109,15 @@
     modal.querySelector('.is-prev').addEventListener('click', () => goTo(current - 1));
     modal.querySelector('.is-next').addEventListener('click', () => goTo(current + 1));
 
-    function open(row) {
-      const tpl = row.querySelector('template.detail');
+    // tpl: the <template> to show; heading: the popup's title
+    function open(tpl, heading) {
       if (!tpl) return;
       opener = document.activeElement;
+      document.documentElement.classList.add('modal-open');
 
       eyebrow.textContent = tpl.dataset.eyebrow || '';
-      title.textContent = row.querySelector('.project-open').textContent.trim();
+      title.textContent = heading;
+      modal.dataset.kind = tpl.id || 'detail';
       body.innerHTML = '';
       body.appendChild(tpl.content.cloneNode(true));
 
@@ -155,6 +157,7 @@
       if (modal.hidden) return;
       slides.forEach((slide) => { const v = slide.querySelector('video'); if (v) v.pause(); });
       modal.classList.remove('is-open');
+      document.documentElement.classList.remove('modal-open');
       window.setTimeout(() => {
         modal.hidden = true;
         track.innerHTML = '';          // stops any video downloads
@@ -164,7 +167,15 @@
     }
 
     openers.forEach((button) => {
-      button.addEventListener('click', () => open(button.closest('.project')));
+      button.addEventListener('click', () => {
+        if (button.dataset.detail) {
+          const tpl = document.getElementById(button.dataset.detail);
+          if (tpl) open(tpl, tpl.dataset.title || button.getAttribute('aria-label') || '');
+        } else {
+          const row = button.closest('.project');
+          open(row.querySelector('template.detail'), button.textContent.trim());
+        }
+      });
     });
     modal.querySelector('.detail-close').addEventListener('click', close);
     modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
@@ -172,12 +183,14 @@
     // Capture phase, so Esc closes the popup rather than the whole page
     document.addEventListener('keydown', (event) => {
       if (modal.hidden) return;
+      const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
       if (event.key === 'Escape') { event.stopPropagation(); event.preventDefault(); close(); }
+      else if (typing) { /* let arrow keys move the text cursor */ }
       else if (event.key === 'ArrowRight' && slides.length > 1) { event.stopPropagation(); goTo(current + 1); }
       else if (event.key === 'ArrowLeft' && slides.length > 1) { event.stopPropagation(); goTo(current - 1); }
       else if (event.key === 'Tab') {
         // keep keyboard focus inside the popup
-        const focusable = Array.from(card.querySelectorAll('button, a[href]')).filter((el) => el.offsetParent !== null);
+        const focusable = Array.from(card.querySelectorAll('button, a[href], input:not([tabindex="-1"]), textarea')).filter((el) => el.offsetParent !== null);
         if (!focusable.length) return;
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
