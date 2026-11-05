@@ -1013,6 +1013,27 @@ body::after {
 .project:hover .project-more span { transform: translateX(4px); }
 .project .chips { margin-top: 0.2rem; }
 
+/* award line above a project's name (e.g. a hackathon win) */
+.award {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.6rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid rgba(246, 214, 140, 0.35);
+  border-radius: 999px;
+  background: rgba(246, 214, 140, 0.1);
+  color: #f6dfa4;
+  font: 600 0.72rem/1.2 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.detail-body .award-lg {
+  margin: 0 0 1.1rem;
+  font-size: 0.78rem;
+  color: #f6dfa4;
+}
+
 /* community rows: no number column; a big stat on the right instead */
 .community-item { grid-template-columns: 1fr auto; }
 .stat {
