@@ -7,10 +7,10 @@
 
 
 /* ------------------------------------------------------------------
-   1. SETTINGS: the values you're most likely to tweak
+   1. SETTINGS
    ------------------------------------------------------------------ */
 :root {
-  /* Your room art: image width ÷ image height. Measured from room-warm-day.png (759×445). */
+  /* room art: image width ÷ image height. Measured from room-warm-day.png (759×445). */
   --ratio: 1.706;
 
   /* Which part of the art stays on screen when it has to be cropped.
@@ -18,11 +18,11 @@
   --focus-x: 0.5;
   --focus-y: 0.6;
 
-  /* The see-through window in your art, as a % of the whole image.
+  /* The see-through window in the art, as a % of the whole image.
      Add  ?align  to the web address to see a red box showing this area.
      Measured directly from each PNG's own alpha channel (these come from
-     your PSDs, which already cut the window's real shape — including the
-     little notch where your hood overlaps it — so nothing here is a
+     PSDs, which already cut the window's real shape — including the
+     little notch where hood overlaps it — so nothing here is a
      plain rectangle guess). The window's top edge is the very top of the
      art (0%), which is why the blinds header bar sits flush with the top
      of the scene. */
@@ -200,7 +200,7 @@ body::after {
 }
 .missing-art .room { visibility: hidden; }
 
-/* The window sits exactly where the transparent hole is in your art.
+/* The window sits exactly where the transparent hole is in the art.
    z-index is explicit on every scene layer below so the darkness layer
    always paints over the blinds, even though its box-shadow can otherwise
    nudge a browser into compositing it on its own layer out of order. */
@@ -727,7 +727,7 @@ body::after {
   opacity: 0;
   transition: opacity 0.7s ease;
 }
-/* A deeper scrim keeps the weather video as atmosphere behind your text.
+/* A deeper scrim keeps the weather video as atmosphere behind the text.
    (A CSS blur on the video looked nice but had to be redone on every video
    frame, which made the pages laggy, so the scrim does the work instead.) */
 .pages-scrim {
@@ -863,7 +863,7 @@ body::after {
   line-height: 1.2;
 }
 
-/* about: intro text with your photo beside it */
+/* about: intro text with photo beside it */
 .about-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(220px, 26vw, 300px);
@@ -1487,7 +1487,7 @@ html.modal-open { overflow: hidden; }
 /* ------------------------------------------------------------------
    9. AMBIENT MOTES
    Soft floating dust drifting up over the room (it stays behind the
-   pages so it never floats across your text). Tinted with the same
+   pages so it never floats across text). Tinted with the same
    --glow colour the room itself uses, so it always matches the mood.
    ------------------------------------------------------------------ */
 .motes {
@@ -1495,7 +1495,7 @@ html.modal-open { overflow: hidden; }
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  z-index: 9;                /* above the room, but behind the pages so it never drifts over your text */
+  z-index: 9;                /* above the room, but behind the pages so it never drifts over the text */
   mix-blend-mode: screen;
 }
 
@@ -1558,58 +1558,60 @@ html.modal-open { overflow: hidden; }
    A bright dot exactly at the pointer, a soft halo in the weather colour
    that drifts behind it, and a short trail of dust specks.
    ------------------------------------------------------------------ */
+/* The dot is the real pointer, drawn by the computer as a small image,
+   so it never lags. (It's a 24px SVG: a cream dot with a soft glow.) */
+:root {
+  --cursor-dot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='7' fill='rgb(255,236,205)' fill-opacity='0.3'/%3E%3Ccircle cx='12' cy='12' r='3.6' fill='%23fffaf0' stroke='rgb(30,20,10)' stroke-opacity='0.4' stroke-width='1'/%3E%3C/svg%3E") 12 12, auto;
+  --cursor-dot-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='5.5' fill='rgb(255,236,205)' fill-opacity='0.3'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23fffaf0' stroke='rgb(30,20,10)' stroke-opacity='0.4' stroke-width='1'/%3E%3C/svg%3E") 12 12, pointer;
+}
 html.has-custom-cursor,
-html.has-custom-cursor * { cursor: none !important; }
+html.has-custom-cursor * { cursor: var(--cursor-dot) !important; }
+html.has-custom-cursor :is(a, button, [role="button"], .project, label, summary, .film, .reel),
+html.has-custom-cursor :is(a, button, [role="button"], .project, label, summary, .film, .reel) * { cursor: var(--cursor-dot-hover) !important; }
+html.has-custom-cursor :is(input, textarea) { cursor: text !important; }   /* keep the typing cursor in the coffee form */
 
-.cursor-dot,
 .cursor-halo,
-.cursor-trail {
+.cursor-speck {
   position: fixed;
   top: 0; left: 0;
   z-index: 600;            /* above the room, the pages and the motes */
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.cursor-visible .cursor-dot,
-.cursor-visible .cursor-halo { opacity: 1; }
-.cursor-trail { width: 100vw; height: 100vh; opacity: 1; }
-
-/* the "firefly" itself; the thin dark ring keeps it visible on bright day art */
-.cursor-dot {
-  will-change: transform;
-  width: 8px; height: 8px;
-  margin: -4px 0 0 -4px;
-  border-radius: 50%;
-  background: #fffaf0;
-  box-shadow:
-    0 0 0 1px rgba(30, 20, 10, 0.25),
-    0 0 10px 2px var(--glow, rgba(255, 220, 170, 0.7));
-  transition: opacity 0.3s ease, width 0.25s var(--ease-out), height 0.25s var(--ease-out), margin 0.25s var(--ease-out);
 }
 
-/* its glow, which lags behind for a soft, floaty feel */
+/* the glow around the dot, which drifts behind it for a soft, floaty feel.
+   cursor.js moves .cursor-halo; the ring inside (<i>) does the growing,
+   so resizing it never shifts where it sits. */
 .cursor-halo {
   width: 44px; height: 44px;
   margin: -22px 0 0 -22px;
+  opacity: 0;
+  will-change: transform;
+  transition: opacity 0.3s ease;
+}
+.cursor-halo.is-visible { opacity: 1; }
+.cursor-halo > i {
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
   border: 1px solid transparent;
   background: radial-gradient(closest-side, var(--glow, rgba(255, 220, 170, 0.5)), transparent);
-  will-change: transform;
-  transition:
-    opacity 0.3s ease,
-    width 0.35s var(--ease-out), height 0.35s var(--ease-out), margin 0.35s var(--ease-out),
-    background 0.35s ease, border-color 0.35s ease;
+  transition: transform 0.35s var(--ease-out), background 0.35s ease, border-color 0.35s ease;
 }
 
-/* over something clickable: the halo opens into a soft ring, the dot shrinks */
-.cursor-hover .cursor-halo {
-  width: 58px; height: 58px;
-  margin: -29px 0 0 -29px;
+/* over something clickable: the halo opens into a soft ring */
+.cursor-halo.is-hover > i {
+  transform: scale(1.32);
   border-color: rgba(255, 255, 255, 0.55);
   background: radial-gradient(closest-side, transparent 60%, var(--glow, rgba(255, 220, 170, 0.4)));
 }
-.cursor-hover .cursor-dot { width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; }
-
 /* pressing squeezes it a little */
-.cursor-down .cursor-halo { width: 34px; height: 34px; margin: -17px 0 0 -17px; }
+.cursor-halo.is-down > i { transform: scale(0.78); }
+
+/* trail specks: animated by cursor.js with transform + opacity only */
+.cursor-speck {
+  width: 13px; height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(circle, #fff 0%, var(--glow, rgba(255, 236, 200, 0.8)) 35%, transparent 70%);
+}

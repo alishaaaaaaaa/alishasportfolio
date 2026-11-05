@@ -1,24 +1,20 @@
 /* =====================================================================
    alisha's portfolio · cursor.js
 
-   A little firefly cursor: a bright dot that sits exactly where your
-   mouse is, a soft halo that drifts lazily behind it, and a short trail
-   of dust specks (like the floating motes) when you move.
-   Everything is tinted with the room's current weather colour (--glow),
-   so it's amber on warm days and blue on cool nights.
+   A little firefly cursor.
+   - A soft halo in the room's weather colour drifts lazily
+     behind it, and opens into a ring over anything clickable.
+   - A short trail of dust specks floats up when you move
 
-   It only switches on for a real mouse / trackpad. Phones, tablets and
-   anyone with "reduce motion" turned on keep their normal cursor.
-   The styles live in style.css, section 11.
    ===================================================================== */
 (() => {
   'use strict';
 
   const SETTINGS = {
-    haloLag: 0.16,       // 0–1: how quickly the halo catches up (lower = lazier)
+    haloSpeed: 14,       // how quickly the halo catches up (higher = snappier)
     trail: true,         // set to false for just the dot + halo
-    specksPerMove: 1,    // how many specks each mouse move drops
-    maxSpecks: 28,       // cap, so the trail never gets heavy
+    speckEveryMs: 28,    // at most one speck this often while moving
+    specks: 14,          // how many speck elements are reused for the trail
     speckLifeMs: 900,    // how long a speck lingers before fading out
   };
 
@@ -26,87 +22,58 @@
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!finePointer || reducedMotion) return;
 
-  // Live inside the stage so the cursor inherits --glow from it
+  // Live inside the stage so the halo and specks inherit --glow from it
   const stage = document.getElementById('viewport') || document.body;
+  const root = document.documentElement;
 
-  const canvas = document.createElement('canvas');
-  canvas.className = 'cursor-trail';
-  canvas.setAttribute('aria-hidden', 'true');
   const halo = document.createElement('div');
   halo.className = 'cursor-halo';
   halo.setAttribute('aria-hidden', 'true');
-  const dot = document.createElement('div');
-  dot.className = 'cursor-dot';
-  dot.setAttribute('aria-hidden', 'true');
-  stage.append(canvas, halo, dot);
-  document.documentElement.classList.add('has-custom-cursor');
+  halo.appendChild(document.createElement('i'));   // the ring itself: it grows/shrinks without moving the halo
+  stage.append(halo);
 
-  const ctx = canvas.getContext('2d');
-  // Specks are soft blurs, so they don't need retina resolution: drawing at
-  // 1x keeps the canvas 4x cheaper on high-DPI screens.
-  function sizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+  // A small, reused set of specks (no canvas, nothing redrawn each frame)
+  const pool = [];
+  if (SETTINGS.trail) {
+    for (let i = 0; i < SETTINGS.specks; i += 1) {
+      const s = document.createElement('span');
+      s.className = 'cursor-speck';
+      s.setAttribute('aria-hidden', 'true');
+      stage.append(s);
+      pool.push(s);
+    }
   }
-  sizeCanvas();
-  window.addEventListener('resize', sizeCanvas);
+  let nextSpeck = 0;
+  let lastSpeck = 0;
 
-  // One speck is drawn once onto a small sprite in the weather colour, then
-  // just stamped for every speck each frame (much cheaper than building a
-  // gradient per speck per frame).
-  const SPRITE = 32;
-  const sprite = document.createElement('canvas');
-  sprite.width = sprite.height = SPRITE;
-  function drawSprite(rgb) {
-    const s = sprite.getContext('2d');
-    const half = SPRITE / 2;
-    const g = s.createRadialGradient(half, half, 0, half, half, half);
-    g.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    g.addColorStop(0.3, `rgba(${rgb}, 0.8)`);
-    g.addColorStop(1, `rgba(${rgb}, 0)`);
-    s.clearRect(0, 0, SPRITE, SPRITE);
-    s.fillStyle = g;
-    s.fillRect(0, 0, SPRITE, SPRITE);
+  function dropSpeck(x, y, now) {
+    if (!pool.length || now - lastSpeck < SETTINGS.speckEveryMs) return;
+    lastSpeck = now;
+    const s = pool[nextSpeck];
+    nextSpeck = (nextSpeck + 1) % pool.length;
+    // position, size and drift all live in the animation itself, so the
+    // page never has to restyle anything for a speck
+    const scale = 0.5 + Math.random() * 0.6;
+    const x0 = x + (Math.random() - 0.5) * 6;
+    const y0 = y + (Math.random() - 0.5) * 6;
+    const x1 = x0 + (Math.random() - 0.5) * 14;
+    const y1 = y0 - (10 + Math.random() * 22);   // drift upward, like the motes
+    s.animate(
+      [
+        { transform: `translate3d(${x0}px, ${y0}px, 0) scale(${scale})`, opacity: 0.85 },
+        { transform: `translate3d(${x1}px, ${y1}px, 0) scale(${scale * 0.5})`, opacity: 0 },
+      ],
+      { duration: SETTINGS.speckLifeMs, easing: 'ease-out', fill: 'forwards' },
+    );
   }
-
-  // Read the weather colour from CSS ("r, g, b") and repaint the sprite
-  function readGlow() {
-    const raw = getComputedStyle(stage).getPropertyValue('--glow');
-    const match = raw.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
-    drawSprite(match ? `${match[1]}, ${match[2]}, ${match[3]}` : '255, 236, 200');
-  }
-  readGlow();
-  // the weather (and so the colour) can change after load
-  new MutationObserver(readGlow).observe(stage, { attributes: true, attributeFilter: ['data-tone', 'data-time'] });
 
   const mouse = { x: -100, y: -100 };
   const haloPos = { x: -100, y: -100 };
-  const specks = [];
   let visible = false;
   let raf = 0;
-  let hadSpecks = false;
+  let lastFrame = 0;
 
   const INTERACTIVE = 'a, button, [role="button"], .project, label, summary';
-
-  let lastSpeck = 0;
-  function addSpecks(x, y) {
-    if (!SETTINGS.trail) return;
-    // mice can fire 500+ moves a second; one speck every ~16ms is plenty
-    const now = performance.now();
-    if (now - lastSpeck < 16) return;
-    lastSpeck = now;
-    for (let i = 0; i < SETTINGS.specksPerMove; i += 1) {
-      if (specks.length >= SETTINGS.maxSpecks) specks.shift();
-      specks.push({
-        x: x + (Math.random() - 0.5) * 6,
-        y: y + (Math.random() - 0.5) * 6,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: -(Math.random() * 0.35 + 0.1),       // drift upward, like the motes
-        r: Math.random() * 1.6 + 0.8,
-        born: performance.now(),
-      });
-    }
-  }
 
   function onMove(event) {
     mouse.x = event.clientX;
@@ -115,59 +82,42 @@
       visible = true;
       haloPos.x = mouse.x;
       haloPos.y = mouse.y;
-      document.documentElement.classList.add('cursor-visible');
+      halo.classList.add('is-visible');
     }
-    addSpecks(mouse.x, mouse.y);
-    start();
+    dropSpeck(mouse.x, mouse.y, event.timeStamp || performance.now());
+    if (!raf) { lastFrame = 0; raf = requestAnimationFrame(frame); }
   }
 
-  function onOver(event) {
-    const hit = event.target.closest && event.target.closest(INTERACTIVE);
-    document.documentElement.classList.toggle('cursor-hover', Boolean(hit));
-  }
-
+  // The halo eases toward the pointer at the same speed whatever the frame
+  // rate, so a busy page makes it skip ahead rather than fall behind.
   function frame(now) {
-    haloPos.x += (mouse.x - haloPos.x) * SETTINGS.haloLag;
-    haloPos.y += (mouse.y - haloPos.y) * SETTINGS.haloLag;
-
-    dot.style.transform = `translate3d(${mouse.x}px, ${mouse.y}px, 0)`;
+    const dt = lastFrame ? Math.min(0.1, (now - lastFrame) / 1000) : 1 / 60;
+    lastFrame = now;
+    const k = 1 - Math.exp(-SETTINGS.haloSpeed * dt);
+    haloPos.x += (mouse.x - haloPos.x) * k;
+    haloPos.y += (mouse.y - haloPos.y) * k;
     halo.style.transform = `translate3d(${haloPos.x}px, ${haloPos.y}px, 0)`;
 
-    if (hadSpecks || specks.length) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let i = specks.length - 1; i >= 0; i -= 1) {
-        const s = specks[i];
-        const age = (now - s.born) / SETTINGS.speckLifeMs;
-        if (age >= 1) { specks.splice(i, 1); continue; }
-        s.x += s.vx;
-        s.y += s.vy;
-        const size = s.r * 6;
-        ctx.globalAlpha = (1 - age) * (1 - age) * 0.9;
-        ctx.drawImage(sprite, s.x - size / 2, s.y - size / 2, size, size);
-      }
-      ctx.globalAlpha = 1;
-    }
-    hadSpecks = specks.length > 0;
-
-    // keep animating while the halo is still catching up or specks remain
-    const settling = Math.abs(mouse.x - haloPos.x) + Math.abs(mouse.y - haloPos.y) > 0.3;
-    if (settling || specks.length) {
+    if (Math.abs(mouse.x - haloPos.x) + Math.abs(mouse.y - haloPos.y) > 0.3) {
       raf = requestAnimationFrame(frame);
     } else {
       raf = 0;
     }
   }
 
-  function start() {
-    if (!raf) raf = requestAnimationFrame(frame);
+  function onOver(event) {
+    const hit = event.target.closest && event.target.closest(INTERACTIVE);
+    halo.classList.toggle('is-hover', Boolean(hit));   // on the halo only, so nothing else restyles
   }
 
   document.addEventListener('pointermove', onMove, { passive: true });
   document.addEventListener('pointerover', onOver, { passive: true });
-  document.addEventListener('pointerdown', () => document.documentElement.classList.add('cursor-down'));
-  document.addEventListener('pointerup', () => document.documentElement.classList.remove('cursor-down'));
-  document.documentElement.addEventListener('pointerleave', () => {
+  document.addEventListener('pointerdown', () => halo.classList.add('is-down'));
+  document.addEventListener('pointerup', () => halo.classList.remove('is-down'));
+  root.addEventListener('pointerleave', () => {
     visible = false;
-    document.documentElement.classList.remove('cursor-visible');
+    halo.classList.remove('is-visible');
   });
+
+  root.classList.add('has-custom-cursor');
 })();
