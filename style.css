@@ -1,5 +1,5 @@
 /* ===================================================================
-   alisha's portfolio · style.css
+   style.css
 
    1 Settings   2 Base   3 Scene   4 Blinds   5 Light & dark
    6 Intro text 7 Buttons 8 Pages  9 Motion & small screens
@@ -504,6 +504,27 @@ body::after {
 .live-icon svg { width: 100%; height: 100%; }
 
 /* same link style as "say hi" on the about page */
+/* hand-drawn signature, bottom-left of the room */
+.signature {
+  position: absolute;
+  left: clamp(16px, 2.8vw, 32px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(14px, 2.4vw, 24px));
+  z-index: 8;
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 100, "opsz" 14;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.72);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  /* fades in with the buttons as the room lights up */
+  opacity: clamp(0, calc((var(--ui, 0) - 0.4) * 1.6), 0.9);
+  transition: opacity 0.4s ease;
+}
+.signature span { display: inline-block; margin-right: 0.2rem; }
+.is-leaving .signature { opacity: 0; }
+
 .corner-links { display: flex; align-items: center; gap: 1.1rem; padding: calc(0.5rem + 1px) 0; }   /* same height as the badge, so both line up */
 .corner-links a {
   color: #fff;
